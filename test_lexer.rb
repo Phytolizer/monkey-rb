@@ -21,6 +21,9 @@ class TestLexer < Test::Unit::TestCase
       } else {
         return false;
       }
+
+      10 == 10;
+      10 != 9;
     END_OF_INPUT
     tests = [
       [:LET, 'let'],
@@ -87,7 +90,15 @@ class TestLexer < Test::Unit::TestCase
       [:RETURN, 'return'],
       [:FALSE, 'false'],
       [:SEMICOLON, ';'],
-      [:RBRACE, '}']
+      [:RBRACE, '}'],
+      [:INT, '10'],
+      [:EQ, '=='],
+      [:INT, '10'],
+      [:SEMICOLON, ';'],
+      [:INT, '10'],
+      [:NOT_EQ, '!='],
+      [:INT, '9'],
+      [:SEMICOLON, ';']
     ]
 
     l = Lexer.new(input)

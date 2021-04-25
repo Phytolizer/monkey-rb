@@ -36,6 +36,14 @@ class Lexer
     @read_position += 1
   end
 
+  def peek_char
+    if @read_position >= @input.length
+      "\0"
+    else
+      @input[@read_position]
+    end
+  end
+
   def read_identifier
     position = @position
     read_char while letter?(@ch) || digit?(@ch)
@@ -59,7 +67,12 @@ class Lexer
     skip_whitespace
     case @ch
     when '='
-      tok = make_token(:ASSIGN, @ch)
+      tok = if peek_char == '='
+              read_char
+              make_token(:EQ, '==')
+            else
+              make_token(:ASSIGN, @ch)
+            end
     when ';'
       tok = make_token(:SEMICOLON, @ch)
     when ','
@@ -75,7 +88,12 @@ class Lexer
     when '}'
       tok = make_token(:RBRACE, @ch)
     when '!'
-      tok = make_token(:BANG, @ch)
+      tok = if peek_char == '='
+              read_char
+              make_token(:NOT_EQ, '!=')
+            else
+              make_token(:BANG, @ch)
+            end
     when '-'
       tok = make_token(:MINUS, @ch)
     when '/'
