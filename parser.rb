@@ -7,10 +7,13 @@ class Parser
     @lexer = lexer
     @cur_token = nil
     @peek_token = nil
+    @errors = []
 
     next_token
     next_token
   end
+
+  attr_reader :errors
 
   def parse_program
     statements = []
@@ -44,14 +47,21 @@ class Parser
       next_token
       true
     else
+      peek_error(type)
       false
     end
+  end
+
+  def peek_error(type)
+    errors << "expected next token to be #{type}, got #{@cur_token.type} instead"
   end
 
   def parse_statement
     case @cur_token.type
     when :LET
       parse_let_statement
+    when :RETURN
+      parse_return_statement
     end
   end
 
@@ -66,5 +76,15 @@ class Parser
     next_token until cur_token_is(:SEMICOLON)
 
     LetStatement.new(token, name, nil)
+  end
+
+  def parse_return_statement
+    token = @cur_token
+    next_token
+
+    # TODO
+    next_token until cur_token_is(:SEMICOLON)
+
+    ReturnStatement.new(token, nil)
   end
 end

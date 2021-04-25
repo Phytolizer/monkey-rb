@@ -46,3 +46,14 @@ class Identifier
 
   attr_reader :token, :value
 end
+
+class ReturnStatement
+  include Node
+
+  def initialize(token, return_value)
+    @token = token
+    @return_value = return_value
+  end
+
+  attr_reader :token, :return_value
+end
