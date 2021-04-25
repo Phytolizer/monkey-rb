@@ -66,4 +66,18 @@ class TestParser < Test::Unit::TestCase
       assert_equal('return', stmt.token_literal)
     end
   end
+
+  def test_identifier_expression
+    input = 'foobar;'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+
+    assert_equal(1, program.statements.length)
+    assert_instance_of(ExpressionStatement, program.statements[0])
+    assert_instance_of(Identifier, program.statements[0].expression)
+    assert_equal('foobar', program.statements[0].expression.value)
+    assert_equal('foobar', program.statements[0].expression.token_literal)
+  end
 end

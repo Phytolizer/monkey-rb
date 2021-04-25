@@ -2,12 +2,26 @@
 
 require_relative 'ast'
 
+class Precedence
+  LOWEST = 1
+  EQUALITY = 2
+  COMPARISON = 3
+  SUM = 4
+  PRODUCT = 5
+  PREFIX = 6
+  CALL = 7
+end
+
 class Parser
   def initialize(lexer)
     @lexer = lexer
     @cur_token = nil
     @peek_token = nil
     @errors = []
+    @prefix_parse_fns = {
+      IDENT: -> { parse_identifier }
+    }
+    @infix_parse_fns = {}
 
     next_token
     next_token
@@ -62,6 +76,8 @@ class Parser
       parse_let_statement
     when :RETURN
       parse_return_statement
+    else
+      parse_expression_statement
     end
   end
 
@@ -86,5 +102,23 @@ class Parser
     next_token until cur_token_is(:SEMICOLON)
 
     ReturnStatement.new(token, nil)
+  end
+
+  def parse_expression_statement
+    token = @cur_token
+    expression = parse_expression(Precedence::LOWEST)
+    next_token if peek_token_is(:SEMICOLON)
+    ExpressionStatement.new(token, expression)
+  end
+
+  def parse_expression(_precedence)
+    prefix = @prefix_parse_fns[@cur_token.type]
+    return nil if prefix.nil?
+
+    prefix.call
+  end
+
+  def parse_identifier
+    Identifier.new(@cur_token, @cur_token.literal)
   end
 end
