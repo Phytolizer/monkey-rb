@@ -12,6 +12,15 @@ class TestLexer < Test::Unit::TestCase
       };
 
       let result = add(five, ten);
+
+      !-/*5;
+      5 < 10 > 5;
+
+      if (5 < 10) {
+        return true;
+      } else {
+        return false;
+      }
     END_OF_INPUT
     tests = [
       [:LET, 'let'],
@@ -49,7 +58,36 @@ class TestLexer < Test::Unit::TestCase
       [:COMMA, ','],
       [:IDENT, 'ten'],
       [:RPAREN, ')'],
-      [:SEMICOLON, ';']
+      [:SEMICOLON, ';'],
+      [:BANG, '!'],
+      [:MINUS, '-'],
+      [:SLASH, '/'],
+      [:STAR, '*'],
+      [:INT, '5'],
+      [:SEMICOLON, ';'],
+      [:INT, '5'],
+      [:LT, '<'],
+      [:INT, '10'],
+      [:GT, '>'],
+      [:INT, '5'],
+      [:SEMICOLON, ';'],
+      [:IF, 'if'],
+      [:LPAREN, '('],
+      [:INT, '5'],
+      [:LT, '<'],
+      [:INT, '10'],
+      [:RPAREN, ')'],
+      [:LBRACE, '{'],
+      [:RETURN, 'return'],
+      [:TRUE, 'true'],
+      [:SEMICOLON, ';'],
+      [:RBRACE, '}'],
+      [:ELSE, 'else'],
+      [:LBRACE, '{'],
+      [:RETURN, 'return'],
+      [:FALSE, 'false'],
+      [:SEMICOLON, ';'],
+      [:RBRACE, '}']
     ]
 
     l = Lexer.new(input)
@@ -60,5 +98,7 @@ class TestLexer < Test::Unit::TestCase
       assert_equal(test[0], tok.type)
       assert_equal(test[1], tok.literal)
     end
+    tok = l.next_token
+    assert_equal(:EOF, tok.type)
   end
 end

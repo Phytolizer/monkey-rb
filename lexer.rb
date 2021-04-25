@@ -74,6 +74,18 @@ class Lexer
       tok = make_token(:LBRACE, @ch)
     when '}'
       tok = make_token(:RBRACE, @ch)
+    when '!'
+      tok = make_token(:BANG, @ch)
+    when '-'
+      tok = make_token(:MINUS, @ch)
+    when '/'
+      tok = make_token(:SLASH, @ch)
+    when '*'
+      tok = make_token(:STAR, @ch)
+    when '<'
+      tok = make_token(:LT, @ch)
+    when '>'
+      tok = make_token(:GT, @ch)
     when "\0"
       tok = Token.new(:EOF, '')
     else

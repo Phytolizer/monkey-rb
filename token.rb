@@ -14,10 +14,15 @@ end
 module Tokens
   KEYWORDS = {
     'let' => :LET,
-    'fn' => :FUNCTION
+    'fn' => :FUNCTION,
+    'if' => :IF,
+    'else' => :ELSE,
+    'return' => :RETURN,
+    'true' => :TRUE,
+    'false' => :FALSE
   }.freeze
   def self.lookup_ident(ident)
-    if KEYWORDS.has_key?(ident)
+    if KEYWORDS.key?(ident)
       KEYWORDS[ident]
     else
       :IDENT
