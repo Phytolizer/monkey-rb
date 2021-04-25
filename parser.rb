@@ -12,6 +12,17 @@ class Precedence
   CALL = 7
 end
 
+PRECEDENCES = {
+  EQ: Precedence::EQUALITY,
+  NOT_EQ: Precedence::EQUALITY,
+  LT: Precedence::COMPARISON,
+  GT: Precedence::COMPARISON,
+  PLUS: Precedence::SUM,
+  MINUS: Precedence::SUM,
+  STAR: Precedence::PRODUCT,
+  SLASH: Precedence::PRODUCT
+}
+
 class Parser
   def initialize(lexer)
     @lexer = lexer
@@ -20,9 +31,20 @@ class Parser
     @errors = []
     @prefix_parse_fns = {
       IDENT: -> { parse_identifier },
-      INT: -> { parse_integer_literal }
+      INT: -> { parse_integer_literal },
+      BANG: -> { parse_prefix_expression },
+      MINUS: -> { parse_prefix_expression }
     }
-    @infix_parse_fns = {}
+    @infix_parse_fns = {
+      PLUS: ->(x) { parse_infix_expression(x) },
+      MINUS: ->(x) { parse_infix_expression(x) },
+      STAR: ->(x) { parse_infix_expression(x) },
+      SLASH: ->(x) { parse_infix_expression(x) },
+      LT: ->(x) { parse_infix_expression(x) },
+      GT: ->(x) { parse_infix_expression(x) },
+      EQ: ->(x) { parse_infix_expression(x) },
+      NOT_EQ: ->(x) { parse_infix_expression(x) }
+    }
 
     next_token
     next_token
@@ -57,6 +79,20 @@ class Parser
     @peek_token.type == type
   end
 
+  def cur_precedence
+    val = PRECEDENCES[@cur_token.type]
+    return val unless val.nil?
+
+    Precedence::LOWEST
+  end
+
+  def peek_precedence
+    val = PRECEDENCES[@peek_token.type]
+    return val unless val.nil?
+
+    Precedence::LOWEST
+  end
+
   def expect_peek(type)
     if peek_token_is(type)
       next_token
@@ -69,6 +105,10 @@ class Parser
 
   def peek_error(type)
     errors << "expected next token to be #{type}, got #{@cur_token.type} instead"
+  end
+
+  def no_prefix_parse_fn_error(type)
+    errors << "no prefix parse function for #{type} found"
   end
 
   def parse_statement
@@ -112,11 +152,24 @@ class Parser
     ExpressionStatement.new(token, expression)
   end
 
-  def parse_expression(_precedence)
+  def parse_expression(precedence)
     prefix = @prefix_parse_fns[@cur_token.type]
-    return nil if prefix.nil?
+    if prefix.nil?
+      no_prefix_parse_fn_error(@cur_token.type)
+      return nil
+    end
 
-    prefix.call
+    left_exp = prefix.call
+
+    while !peek_token_is(:SEMICOLON) && precedence < peek_precedence
+      infix = @infix_parse_fns[@peek_token.type]
+      return left_exp if infix.nil?
+
+      next_token
+      left_exp = infix.call(left_exp)
+    end
+
+    left_exp
   end
 
   def parse_identifier
@@ -125,5 +178,23 @@ class Parser
 
   def parse_integer_literal
     IntegerLiteral.new(@cur_token, @cur_token.literal.to_i)
+  end
+
+  def parse_prefix_expression
+    token = @cur_token
+    operator = @cur_token.literal
+    next_token
+    right = parse_expression(Precedence::PREFIX)
+
+    PrefixExpression.new(token, operator, right)
+  end
+
+  def parse_infix_expression(left)
+    token = @cur_token
+    operator = @cur_token.literal
+    precedence = cur_precedence
+    next_token
+    right = parse_expression(precedence)
+    InfixExpression.new(token, left, operator, right)
   end
 end

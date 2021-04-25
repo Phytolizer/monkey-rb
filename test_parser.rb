@@ -22,6 +22,12 @@ class TestParser < Test::Unit::TestCase
     assert_equal(0, parser.errors.length)
   end
 
+  def check_integer_literal(expected, actual)
+    assert_instance_of(IntegerLiteral, actual)
+    assert_equal(expected, actual.value)
+    assert_equal(expected.to_s, actual.token_literal)
+  end
+
   public
 
   def test_let_statement
@@ -96,5 +102,82 @@ class TestParser < Test::Unit::TestCase
     assert_instance_of(IntegerLiteral, literal)
     assert_equal(5, literal.value)
     assert_equal('5', literal.token_literal)
+  end
+
+  def test_prefix_expressions
+    tests = [
+      ['!5;', '!', 5],
+      ['-15;', '-', 15]
+    ]
+
+    tests.each do |test|
+      l = Lexer.new(test[0])
+      p = Parser.new(l)
+      program = p.parse_program
+      check_parser_errors(p)
+      assert_equal(1, program.statements.length)
+      stmt = program.statements[0]
+      assert_instance_of(ExpressionStatement, stmt)
+      exp = stmt.expression
+      assert_instance_of(PrefixExpression, exp)
+      assert_equal(test[1], exp.operator)
+      check_integer_literal(test[2], exp.right)
+    end
+  end
+
+  def test_infix_expressions
+    tests = [
+      ['5 + 5;', 5, '+', 5],
+      ['5 - 5;', 5, '-', 5],
+      ['5 * 5;', 5, '*', 5],
+      ['5 / 5;', 5, '/', 5],
+      ['5 < 5;', 5, '<', 5],
+      ['5 > 5;', 5, '>', 5],
+      ['5 == 5;', 5, '==', 5],
+      ['5 != 5;', 5, '!=', 5]
+    ]
+
+    tests.each do |test|
+      l = Lexer.new(test[0])
+      p = Parser.new(l)
+      program = p.parse_program
+      check_parser_errors(p)
+
+      assert_equal(program.statements.length, 1)
+      stmt = program.statements[0]
+      assert_instance_of(ExpressionStatement, stmt)
+      exp = stmt.expression
+      assert_instance_of(InfixExpression, exp)
+      check_integer_literal(test[1], exp.left)
+      assert_equal(test[2], exp.operator)
+      check_integer_literal(test[3], exp.right)
+    end
+  end
+
+  def test_operator_precedence
+    tests = [
+      ['-a * b', '((-a) * b)'],
+      ['!-a', '(!(-a))'],
+      ['a + b + c', '((a + b) + c)'],
+      ['a + b - c', '((a + b) - c)'],
+      ['a * b * c', '((a * b) * c)'],
+      ['a * b / c', '((a * b) / c)'],
+      ['a + b / c', '(a + (b / c))'],
+      ['a + b * c + d / e - f', '(((a + (b * c)) + (d / e)) - f)'],
+      ['3 + 4; -5 * 5', '(3 + 4)((-5) * 5)'],
+      ['5 > 4 == 3 < 4', '((5 > 4) == (3 < 4))'],
+      ['5 < 4 != 3 > 4', '((5 < 4) != (3 > 4))'],
+      ['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))'],
+      ['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))']
+    ]
+
+    tests.each do |test|
+      l = Lexer.new(test[0])
+      p = Parser.new(l)
+      program = p.parse_program
+      check_parser_errors(p)
+      actual = program.string
+      assert_equal(test[1], actual)
+    end
   end
 end

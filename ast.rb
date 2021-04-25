@@ -26,7 +26,7 @@ class Program
   end
 
   def string
-    @statements.map(&:string).join("\n")
+    @statements.map(&:string).join('')
   end
 
   attr_reader :statements
@@ -79,6 +79,39 @@ class IntegerLiteral
   end
 
   attr_reader :token, :value
+end
+
+class PrefixExpression
+  include Node
+
+  def initialize(token, operator, right)
+    @token = token
+    @operator = operator
+    @right = right
+  end
+
+  def string
+    "(#{@operator}#{@right.string})"
+  end
+
+  attr_reader :token, :operator, :right
+end
+
+class InfixExpression
+  include Node
+
+  def initialize(token, left, operator, right)
+    @token = token
+    @left = left
+    @operator = operator
+    @right = right
+  end
+
+  def string
+    "(#{@left.string} #{@operator} #{@right.string})"
+  end
+
+  attr_reader :token, :left, :operator, :right
 end
 
 class ReturnStatement
