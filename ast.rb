@@ -149,3 +149,18 @@ class ExpressionStatement
 
   attr_reader :token, :expression
 end
+
+class Boolean
+  include Node
+
+  def initialize(token, value)
+    @token = token
+    @value = value
+  end
+
+  def string
+    token_literal
+  end
+
+  attr_reader :token, :value
+end

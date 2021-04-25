@@ -180,4 +180,19 @@ class TestParser < Test::Unit::TestCase
       assert_equal(test[1], actual)
     end
   end
+
+  def test_boolean
+    input = 'true;'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    exp = stmt.expression
+    assert_instance_of(Boolean, exp)
+    assert_equal(true, exp.value)
+    assert_equal('true', exp.token_literal)
+  end
 end
