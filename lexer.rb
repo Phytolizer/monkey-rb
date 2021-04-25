@@ -2,6 +2,21 @@
 
 require_relative 'token'
 
+def letter?(chr)
+  chr.match?(/[a-zA-Z_]/)
+end
+
+def digit?(chr)
+  chr.match?(/[0-9]/)
+end
+
+def whitespace?(chr)
+  chr.match?(/[ \r\t\n]/)
+end
+
+## The Monkey language lexer.
+## It is handwritten and very basic,
+## but gets the job done.
 class Lexer
   def initialize(input)
     @input = input
@@ -21,10 +36,27 @@ class Lexer
     @read_position += 1
   end
 
-  private :read_char
+  def read_identifier
+    position = @position
+    read_char while letter?(@ch) || digit?(@ch)
+    @input[position...@position]
+  end
+
+  def read_number
+    position = @position
+    read_char while digit?(@ch)
+    @input[position...@position]
+  end
+
+  def skip_whitespace
+    read_char while whitespace?(@ch)
+  end
+
+  private :read_char, :read_identifier, :read_number, :skip_whitespace
 
   def next_token
     tok = nil
+    skip_whitespace
     case @ch
     when '='
       tok = make_token(:ASSIGN, @ch)
@@ -44,6 +76,18 @@ class Lexer
       tok = make_token(:RBRACE, @ch)
     when "\0"
       tok = Token.new(:EOF, '')
+    else
+      if letter?(@ch)
+        text = read_identifier
+        tok = Token.new(Tokens.lookup_ident(text), text)
+        return tok
+      elsif digit?(@ch)
+        text = read_number
+        tok = Token.new(:INT, text)
+        return tok
+      else
+        tok = make_token(:ILLEGAL, @ch)
+      end
     end
 
     read_char
