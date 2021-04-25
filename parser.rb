@@ -19,7 +19,8 @@ class Parser
     @peek_token = nil
     @errors = []
     @prefix_parse_fns = {
-      IDENT: -> { parse_identifier }
+      IDENT: -> { parse_identifier },
+      INT: -> { parse_integer_literal }
     }
     @infix_parse_fns = {}
 
@@ -120,5 +121,9 @@ class Parser
 
   def parse_identifier
     Identifier.new(@cur_token, @cur_token.literal)
+  end
+
+  def parse_integer_literal
+    IntegerLiteral.new(@cur_token, @cur_token.literal.to_i)
   end
 end

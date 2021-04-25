@@ -66,6 +66,21 @@ class Identifier
   attr_reader :token, :value
 end
 
+class IntegerLiteral
+  include Node
+
+  def initialize(token, value)
+    @token = token
+    @value = value
+  end
+
+  def string
+    token_literal
+  end
+
+  attr_reader :token, :value
+end
+
 class ReturnStatement
   include Node
 

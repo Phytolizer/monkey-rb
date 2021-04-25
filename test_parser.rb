@@ -80,4 +80,21 @@ class TestParser < Test::Unit::TestCase
     assert_equal('foobar', program.statements[0].expression.value)
     assert_equal('foobar', program.statements[0].expression.token_literal)
   end
+
+  def test_integer_literal
+    input = '5;'
+
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    literal = stmt.expression
+    assert_instance_of(IntegerLiteral, literal)
+    assert_equal(5, literal.value)
+    assert_equal('5', literal.token_literal)
+  end
 end
