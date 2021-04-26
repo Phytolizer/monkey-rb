@@ -36,7 +36,8 @@ class Parser
       MINUS: -> { parse_prefix_expression },
       TRUE: -> { parse_boolean },
       FALSE: -> { parse_boolean },
-      LPAREN: -> { parse_grouped_expression }
+      LPAREN: -> { parse_grouped_expression },
+      IF: -> { parse_if_expression }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -211,5 +212,39 @@ class Parser
     return nil unless expect_peek(:RPAREN)
 
     exp
+  end
+
+  def parse_if_expression
+    token = @cur_token
+    return nil unless expect_peek(:LPAREN)
+
+    next_token
+    condition = parse_expression(Precedence::LOWEST)
+    return nil unless expect_peek(:RPAREN)
+    return nil unless expect_peek(:LBRACE)
+
+    consequence = parse_block_statement
+    alternative = nil
+    if peek_token_is(:ELSE)
+      next_token
+      return nil unless expect_peek(:LBRACE)
+
+      alternative = parse_block_statement
+    end
+
+    IfExpression.new(token, condition, consequence, alternative)
+  end
+
+  def parse_block_statement
+    token = @cur_token
+    statements = []
+    next_token
+    while !cur_token_is(:RBRACE) && !cur_token_is(:EOF)
+      stmt = parse_statement
+      statements << stmt unless stmt.nil?
+      next_token
+    end
+
+    BlockStatement.new(token, statements)
   end
 end

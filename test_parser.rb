@@ -19,7 +19,7 @@ class TestParser < Test::Unit::TestCase
 
   def check_parser_errors(parser)
     parser.errors.each do |error|
-      puts "parser error: #{error}"
+      warn "parser error: #{error}"
     end
     assert_equal(0, parser.errors.length)
   end
@@ -51,6 +51,13 @@ class TestParser < Test::Unit::TestCase
     when TrueClass, FalseClass
       check_boolean_literal(expected, actual)
     end
+  end
+
+  def check_infix_expression(left, operator, right, actual)
+    assert_instance_of(InfixExpression, actual)
+    check_literal_expression(left, actual.left)
+    assert_equal(operator, actual.operator)
+    check_literal_expression(right, actual.right)
   end
 
   public
@@ -233,5 +240,47 @@ class TestParser < Test::Unit::TestCase
     assert_instance_of(Boolean, exp)
     assert_equal(true, exp.value)
     assert_equal('true', exp.token_literal)
+  end
+
+  def test_if_expression
+    input = 'if (x < y) { x }'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    exp = stmt.expression
+    assert_instance_of(IfExpression, exp)
+    check_infix_expression('x', '<', 'y', exp.condition)
+    assert_equal(exp.consequence.statements.length, 1)
+    consequence = exp.consequence.statements[0]
+    assert_instance_of(ExpressionStatement, consequence)
+    check_identifier('x', consequence.expression)
+    assert_nil(exp.alternative)
+  end
+
+  def test_if_else_expression
+    input = 'if (x < y) { x } else { y }'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    exp = stmt.expression
+    assert_instance_of(IfExpression, exp)
+    check_infix_expression('x', '<', 'y', exp.condition)
+    assert_equal(exp.consequence.statements.length, 1)
+    consequence = exp.consequence.statements[0]
+    assert_instance_of(ExpressionStatement, consequence)
+    check_identifier('x', consequence.expression)
+    assert_not_nil(exp.alternative)
+    assert_equal(exp.alternative.statements.length, 1)
+    alternative = exp.alternative.statements[0]
+    assert_instance_of(ExpressionStatement, alternative)
+    check_identifier('y', alternative.expression)
   end
 end

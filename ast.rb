@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+## A single AST node.
+## The main use of this module is to ease
+## implementation of token_literal, as it is typically repeated.
 module Node
   def token_literal
     @token.literal
@@ -10,6 +13,8 @@ module Node
   end
 end
 
+## The entire program.
+## In other words, this is the root of the AST.
 class Program
   include Node
 
@@ -26,12 +31,14 @@ class Program
   end
 
   def string
-    @statements.map(&:string).join('')
+    @statements.map(&:string).join
   end
 
   attr_reader :statements
 end
 
+## A 'let' statement:
+## `let x = 5;`
 class LetStatement
   include Node
 
@@ -51,6 +58,8 @@ class LetStatement
   attr_reader :token, :name, :value
 end
 
+## An identifier. Valid identifiers in Monkey
+## begin with a letter or underscore, and contain letters, digits, or underscores.
 class Identifier
   include Node
 
@@ -66,6 +75,7 @@ class Identifier
   attr_reader :token, :value
 end
 
+## An integer literal. These can be of any length.
 class IntegerLiteral
   include Node
 
@@ -81,6 +91,8 @@ class IntegerLiteral
   attr_reader :token, :value
 end
 
+## A prefix expression.
+## Valid prefix operators are ! and -.
 class PrefixExpression
   include Node
 
@@ -97,6 +109,10 @@ class PrefixExpression
   attr_reader :token, :operator, :right
 end
 
+## An infix expression.
+## Infix expressions are characterized by their operator,
+## but this system is also used for call expressions.
+## Valid operator tokens: +, -, *, /, <, >, ==, !=, (
 class InfixExpression
   include Node
 
@@ -114,6 +130,8 @@ class InfixExpression
   attr_reader :token, :left, :operator, :right
 end
 
+## A return statement, e.g. from a function.
+## `return 12 + 6;`
 class ReturnStatement
   include Node
 
@@ -131,6 +149,7 @@ class ReturnStatement
   attr_reader :token, :return_value
 end
 
+## A statement which consists of only an expression.
 class ExpressionStatement
   include Node
 
@@ -150,6 +169,7 @@ class ExpressionStatement
   attr_reader :token, :expression
 end
 
+## A boolean literal. Can only be `true` or `false`.
 class Boolean
   include Node
 
@@ -163,4 +183,41 @@ class Boolean
   end
 
   attr_reader :token, :value
+end
+
+## An if expression. Consists of a condition, consequence, and an optional alternative.
+class IfExpression
+  include Node
+
+  def initialize(token, condition, consequence, alternative)
+    @token = token
+    @condition = condition
+    @consequence = consequence
+    @alternative = alternative
+  end
+
+  def string
+    out = "#{token_literal}#{@condition.string} #{@consequence.string}"
+    out << " else #{@alternative.string}" unless @alternative.nil?
+    out
+  end
+
+  attr_reader :token, :condition, :consequence, :alternative
+end
+
+## A block statement.
+## Typically used as the contents of an if expression or function literal.
+class BlockStatement
+  include Node
+
+  def initialize(token, statements)
+    @token = token
+    @statements = statements
+  end
+
+  def string
+    @statements.map(&:string).join
+  end
+
+  attr_reader :token, :statements
 end
