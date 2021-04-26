@@ -104,16 +104,38 @@ end
 
 ## A Monkey environment, storing values for names.
 class Environment
-  def initialize
+  def initialize(outer = nil)
+    @outer = outer
     @store = {}
   end
 
   def get(name)
-    @store[name]
+    val = @store[name]
+    val = @outer.get(name) if val.nil? && !@outer.nil?
+    val
   end
 
   def set(name, val)
     @store[name] = val
     val
+  end
+end
+
+## A Monkey function.
+class Function
+  def initialize(parameters, body, env)
+    @parameters = parameters
+    @body = body
+    @env = env
+  end
+
+  attr_reader :parameters, :body, :env
+
+  def type
+    :FUNCTION
+  end
+
+  def inspect
+    "fn(#{@parameters.map(&:string).join}) {\n#{@body.string}\n}"
   end
 end

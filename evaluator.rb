@@ -117,6 +117,39 @@ def eval_identifier(node, env)
   end
 end
 
+def eval_expressions(exps, env)
+  result = []
+  exps.each do |e|
+    evaluated = monkey_eval(e, env)
+    return [evaluated] if error?(evaluated)
+
+    result << evaluated
+  end
+  result
+end
+
+def apply_function(func, args)
+  return MonkeyError.new("not a function: #{func.type}") unless func.is_a?(Function)
+
+  extended_env = extend_function_env(func, args)
+  evaluated = monkey_eval(func.body, extended_env)
+  unwrap_return_value(evaluated)
+end
+
+def extend_function_env(func, args)
+  env = Environment.new(func.env)
+  func.parameters.each_with_index do |param, param_idx|
+    env.set(param.value, args[param_idx])
+  end
+  env
+end
+
+def unwrap_return_value(obj)
+  return obj.value if obj.is_a?(ReturnValue)
+
+  obj
+end
+
 def monkey_eval(node, env)
   case node
   when Program
@@ -139,6 +172,8 @@ def monkey_eval(node, env)
     MonkeyInteger.new(node.value)
   when Boolean
     native_bool_to_boolean_object(node.value)
+  when Identifier
+    eval_identifier(node, env)
   when PrefixExpression
     right = monkey_eval(node.right, env)
     return right if error?(right)
@@ -163,8 +198,18 @@ def monkey_eval(node, env)
     else
       MONKEY_NULL
     end
-  when Identifier
-    eval_identifier(node, env)
+  when FunctionLiteral
+    parameters = node.parameters
+    body = node.body
+    Function.new(parameters, body, env)
+  when CallExpression
+    function = monkey_eval(node.function, env)
+    return function if error?(function)
+
+    args = eval_expressions(node.arguments, env)
+    return args[0] if args.length == 1 && error?(args[0])
+
+    apply_function(function, args)
   end
 end
 

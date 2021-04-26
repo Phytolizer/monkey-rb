@@ -190,4 +190,29 @@ class TestEvaluator < Test::Unit::TestCase
       check_integer_object(tt.expected, setup_eval(tt.input))
     end
   end
+
+  def test_function_object
+    input = 'fn(x) { x + 2; };'
+    evaluated = setup_eval(input)
+    assert_instance_of(Function, evaluated)
+    assert_equal(1, evaluated.parameters.length)
+    assert_equal('x', evaluated.parameters[0].string)
+    assert_equal('(x + 2)', evaluated.body.string)
+  end
+
+  def test_function_application
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('let identity = fn(x) { x; }; identity(5);', 5),
+      test.new('let identity = fn(x) { return x; }; identity(5);', 5),
+      test.new('let double = fn(x) { x * 2; }; double(5);', 10),
+      test.new('let add = fn(x, y) { x + y; }; add(5, 5);', 10),
+      test.new('let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));', 20),
+      test.new('fn(x) { x; }(5)', 5)
+    ]
+
+    tests.each do |tt|
+      check_integer_object(tt.expected, setup_eval(tt.input))
+    end
+  end
 end
