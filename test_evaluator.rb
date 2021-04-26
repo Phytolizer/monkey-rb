@@ -215,4 +215,16 @@ class TestEvaluator < Test::Unit::TestCase
       check_integer_object(tt.expected, setup_eval(tt.input))
     end
   end
+
+  def test_closures
+    input = <<~END_OF_INPUT
+      let newAdder = fn(x) {
+        fn(y) { x + y; };
+      };
+
+      let addTwo = newAdder(2);
+      addTwo(2);
+    END_OF_INPUT
+    check_integer_object(4, setup_eval(input))
+  end
 end
