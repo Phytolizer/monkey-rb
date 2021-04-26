@@ -28,6 +28,29 @@ class TestParser < Test::Unit::TestCase
     assert_equal(expected.to_s, actual.token_literal)
   end
 
+  def check_identifier(expected, actual)
+    assert_instance_of(Identifier, actual)
+    assert_equal(expected, actual.value)
+    assert_equal(expected, actual.token_literal)
+  end
+
+  def check_boolean_literal(expected, actual)
+    assert_instance_of(Boolean, actual)
+    assert_equal(expected, actual.value)
+    assert_equal(expected.to_s, actual.token_literal)
+  end
+
+  def check_literal_expression(expected, actual)
+    case expected
+    when Integer
+      check_integer_literal(expected, actual)
+    when String
+      check_identifier(expected, actual)
+    when TrueClass, FalseClass
+      check_boolean_literal(expected, actual)
+    end
+  end
+
   public
 
   def test_let_statement
@@ -107,7 +130,9 @@ class TestParser < Test::Unit::TestCase
   def test_prefix_expressions
     tests = [
       ['!5;', '!', 5],
-      ['-15;', '-', 15]
+      ['-15;', '-', 15],
+      ['!true;', '!', true],
+      ['!false;', '!', false]
     ]
 
     tests.each do |test|
@@ -121,7 +146,7 @@ class TestParser < Test::Unit::TestCase
       exp = stmt.expression
       assert_instance_of(PrefixExpression, exp)
       assert_equal(test[1], exp.operator)
-      check_integer_literal(test[2], exp.right)
+      check_literal_expression(test[2], exp.right)
     end
   end
 
@@ -134,7 +159,10 @@ class TestParser < Test::Unit::TestCase
       ['5 < 5;', 5, '<', 5],
       ['5 > 5;', 5, '>', 5],
       ['5 == 5;', 5, '==', 5],
-      ['5 != 5;', 5, '!=', 5]
+      ['5 != 5;', 5, '!=', 5],
+      ['true == true;', true, '==', true],
+      ['true != false;', true, '!=', false],
+      ['false == false', false, '==', false]
     ]
 
     tests.each do |test|
@@ -148,9 +176,9 @@ class TestParser < Test::Unit::TestCase
       assert_instance_of(ExpressionStatement, stmt)
       exp = stmt.expression
       assert_instance_of(InfixExpression, exp)
-      check_integer_literal(test[1], exp.left)
+      check_literal_expression(test[1], exp.left)
       assert_equal(test[2], exp.operator)
-      check_integer_literal(test[3], exp.right)
+      check_literal_expression(test[3], exp.right)
     end
   end
 
@@ -168,7 +196,11 @@ class TestParser < Test::Unit::TestCase
       ['5 > 4 == 3 < 4', '((5 > 4) == (3 < 4))'],
       ['5 < 4 != 3 > 4', '((5 < 4) != (3 > 4))'],
       ['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))'],
-      ['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))']
+      ['3 + 4 * 5 == 3 * 1 + 4 * 5', '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))'],
+      %w[true true],
+      %w[false false],
+      ['3 > 5 == false', '((3 > 5) == false)'],
+      ['3 < 5 == true', '((3 < 5) == true)']
     ]
 
     tests.each do |test|

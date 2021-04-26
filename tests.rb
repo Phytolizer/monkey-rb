@@ -3,7 +3,7 @@ require_relative 'test_lexer'
 require_relative 'test_parser'
 require_relative 'test_ast'
 
-class TS_MonkeyTests
+class MonkeyTests
   def self.suite
     suite = Test::Unit::TestSuite.new
     suite << TestLexer.suite
