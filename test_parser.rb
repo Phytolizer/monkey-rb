@@ -402,4 +402,113 @@ class TestParser < Test::Unit::TestCase
     check_identifier('myArray', exp.left)
     check_infix_expression(1, '+', 1, exp.index)
   end
+
+  def test_hash_literals_string_keys
+    input = '{"one": 1, "two": 2, "three": 3}'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    hash = stmt.expression
+    assert_instance_of(HashLiteral, hash)
+    assert_equal(3, hash.pairs.length)
+    expected = {
+      'one' => 1,
+      'two' => 2,
+      'three' => 3
+    }
+    hash.pairs.each do |key, value|
+      assert_instance_of(StringLiteral, key)
+      expected_value = expected[key.string]
+      assert_not_nil(expected_value)
+      check_integer_literal(expected_value, value)
+    end
+  end
+
+  def test_hash_literals_integer_keys
+    input = '{1: 1, 3: 2, 2: 3}'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    hash = stmt.expression
+    assert_instance_of(HashLiteral, hash)
+    assert_equal(3, hash.pairs.length)
+    expected = {
+      1 => 1,
+      3 => 2,
+      2 => 3
+    }
+    hash.pairs.each do |key, value|
+      assert_instance_of(IntegerLiteral, key)
+      expected_value = expected[key.value]
+      assert_not_nil(expected_value)
+      check_integer_literal(expected_value, value)
+    end
+  end
+
+  def test_hash_literal_boolean_keys
+    input = '{true: 2, false: 3}'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    hash = stmt.expression
+    assert_instance_of(HashLiteral, hash)
+    assert_equal(2, hash.pairs.length)
+    expected = {
+      true => 2,
+      false => 3
+    }
+    hash.pairs.each do |key, value|
+      assert_instance_of(Boolean, key)
+      expected_value = expected[key.value]
+      assert_not_nil(expected_value)
+      check_integer_literal(expected_value, value)
+    end
+  end
+
+  def test_empty_hash_literal
+    input = '{}'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    hash = stmt.expression
+    assert_instance_of(HashLiteral, hash)
+    assert_equal(0, hash.pairs.length)
+  end
+
+  def test_hash_literals_with_expressions
+    input = '{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    hash = stmt.expression
+    assert_instance_of(HashLiteral, hash)
+    assert_equal(3, hash.pairs.length)
+
+    checks = {
+      'one' => ->(e) { check_infix_expression(0, '+', 1, e) },
+      'two' => ->(e) { check_infix_expression(10, '-', 8, e) },
+      'three' => ->(e) { check_infix_expression(15, '/', 5, e) }
+    }
+    hash.pairs.each do |key, value|
+      assert_instance_of(StringLiteral, key)
+      checker = checks[key.string]
+      assert_not_nil(checker)
+      checker.call(value)
+    end
+  end
 end

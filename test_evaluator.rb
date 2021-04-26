@@ -169,7 +169,8 @@ class TestEvaluator < Test::Unit::TestCase
         }
       ', 'unknown operator: BOOLEAN + BOOLEAN'),
       test.new('foobar', 'identifier not found: foobar'),
-      test.new('"Hello" - "World"', 'unknown operator: STRING - STRING')
+      test.new('"Hello" - "World"', 'unknown operator: STRING - STRING'),
+      test.new('{"name": "Monkey"}[fn(x) { x }];', 'unusable as hash key: FUNCTION')
     ]
     tests.each do |tt|
       evaluated = setup_eval(tt.input)
@@ -288,6 +289,59 @@ class TestEvaluator < Test::Unit::TestCase
       test.new('let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]', 2),
       test.new('[1, 2, 3][3]', nil),
       test.new('[1, 2, 3][-1]', nil)
+    ]
+
+    tests.each do |tt|
+      evaluated = setup_eval(tt.input)
+      case tt.expected
+      when Integer
+        check_integer_object(tt.expected, evaluated)
+      else
+        check_null_object(evaluated)
+      end
+    end
+  end
+
+  def test_hash_literals
+    input = <<~END_OF_INPUT
+      let two = "two";
+      {
+        "one": 10 - 9,
+        two: 1 + 1,
+        "thr" + "ee": 6 / 2,
+        4: 4,
+        true: 5,
+        false: 6
+      }
+    END_OF_INPUT
+    evaluated = setup_eval(input)
+    assert_instance_of(MonkeyHash, evaluated)
+    expected = {
+      MonkeyString.new('one').hash_key => 1,
+      MonkeyString.new('two').hash_key => 2,
+      MonkeyString.new('three').hash_key => 3,
+      MonkeyInteger.new(4).hash_key => 4,
+      MONKEY_TRUE.hash_key => 5,
+      MONKEY_FALSE.hash_key => 6
+    }
+    assert_equal(evaluated.pairs.length, expected.length)
+    expected.each do |expected_key, expected_value|
+      pair = evaluated.pairs[expected_key]
+      assert_not_nil(pair)
+      check_integer_object(expected_value, pair.value)
+    end
+  end
+
+  def test_hash_index_expressions
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('{"foo": 5}["foo"]', 5),
+      test.new('{"foo": 5}["bar"]', nil),
+      test.new('let key = "foo"; {"foo": 5}[key]', 5),
+      test.new('{}["foo"]', nil),
+      test.new('{5: 5}[5]', 5),
+      test.new('{true: 5}[true]', 5),
+      test.new('{false: 5}[false]', 5)
     ]
 
     tests.each do |tt|

@@ -45,7 +45,8 @@ class Parser
       IF: -> { parse_if_expression },
       FUNCTION: -> { parse_function_literal },
       STRING: -> { parse_string_literal },
-      LBRACKET: -> { parse_array_literal }
+      LBRACKET: -> { parse_array_literal },
+      LBRACE: -> { parse_hash_literal }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -336,5 +337,24 @@ class Parser
     return nil unless expect_peek(:RBRACKET)
 
     IndexExpression.new(token, left, index)
+  end
+
+  def parse_hash_literal
+    token = @cur_token
+    pairs = {}
+    until peek_token_is(:RBRACE)
+      next_token
+      key = parse_expression(Precedence::LOWEST)
+      return nil unless expect_peek(:COLON)
+
+      next_token
+      value = parse_expression(Precedence::LOWEST)
+      pairs[key] = value
+      return nil if !peek_token_is(:RBRACE) && !expect_peek(:COMMA)
+    end
+
+    return nil unless expect_peek(:RBRACE)
+
+    HashLiteral.new(token, pairs)
   end
 end

@@ -235,9 +235,20 @@ end
 def eval_index_expression(left, index)
   if left.type == :ARRAY && index.type == :INTEGER
     eval_array_index_expression(left, index)
+  elsif left.type == :HASH
+    eval_hash_index_expression(left, index)
   else
     MonkeyError.new("index operator not supported: #{left.type}")
   end
+end
+
+def eval_hash_index_expression(left, index)
+  return MonkeyError.new("unusable as hash key: #{index.type}") unless index.is_a?(Hashable)
+
+  pair = left.pairs[index.hash_key]
+  return MONKEY_NULL if pair.nil?
+
+  pair.value
 end
 
 def eval_array_index_expression(array, index)
@@ -245,6 +256,23 @@ def eval_array_index_expression(array, index)
   return MONKEY_NULL if index.value.negative? || index.value > max
 
   array.elements[index.value]
+end
+
+def eval_hash_literal(node, env)
+  pairs = {}
+  node.pairs.each do |key_node, value_node|
+    key = monkey_eval(key_node, env)
+    return key if error?(key)
+    return MonkeyError.new("unusable as hash key: #{key.type}") unless key.is_a?(Hashable)
+
+    value = monkey_eval(value_node, env)
+    return value if error?(value)
+
+    hashed = key.hash_key
+    pairs[hashed] = HashPair.new(key, value)
+  end
+
+  MonkeyHash.new(pairs)
 end
 
 def monkey_eval(node, env)
@@ -322,6 +350,8 @@ def monkey_eval(node, env)
     return index if error?(index)
 
     eval_index_expression(left, index)
+  when HashLiteral
+    eval_hash_literal(node, env)
   end
 end
 

@@ -307,3 +307,23 @@ class IndexExpression
     "(#{@left.string}[#{@index.string}])"
   end
 end
+
+## A hash literal. Hashes are like Ruby's Hash.
+class HashLiteral
+  include Node
+
+  def initialize(token, pairs)
+    @token = token
+    @pairs = pairs
+  end
+
+  attr_reader :token, :pairs
+
+  def string
+    pairs = []
+    @pairs.each do |k, v|
+      pairs << "#{k.string}:#{v.string}"
+    end
+    "{#{pairs.join(', ')}}"
+  end
+end

@@ -117,6 +117,8 @@ class Lexer
       tok = make_token(:LBRACKET, @ch)
     when ']'
       tok = make_token(:RBRACKET, @ch)
+    when ':'
+      tok = make_token(:COLON, @ch)
     when '"'
       tok = Token.new(:STRING, read_string)
     when "\0"

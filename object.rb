@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'digest/sha1'
+
 ## A Monkey object, represented as an "abstract class" in Ruby
 module MonkeyObject
   def type
@@ -11,9 +13,20 @@ module MonkeyObject
   end
 end
 
+## A hashable object, required to implement HashKey
+module Hashable
+  def hash_key
+    raise NotImplementedError, 'Hashable::hash_key is not meant to be called'
+  end
+end
+
+## A key for a MonkeyHash
+HashKey = Struct.new(:type, :value)
+
 ## A Monkey integer
 class MonkeyInteger
   include MonkeyObject
+  include Hashable
 
   def initialize(value)
     @value = value
@@ -27,12 +40,17 @@ class MonkeyInteger
     @value.to_s
   end
 
+  def hash_key
+    HashKey.new(type, @value)
+  end
+
   attr_reader :value
 end
 
 ## A Monkey boolean
 class MonkeyBoolean
   include MonkeyObject
+  include Hashable
 
   def initialize(value)
     @value = value
@@ -44,6 +62,16 @@ class MonkeyBoolean
 
   def inspect
     @value.to_s
+  end
+
+  def hash_key
+    value = if @value
+              1
+            else
+              0
+            end
+
+    HashKey.new(type, value)
   end
 
   attr_reader :value
@@ -143,6 +171,7 @@ end
 ## A Monkey string.
 class MonkeyString
   include MonkeyObject
+  include Hashable
 
   def initialize(value)
     @value = value
@@ -156,6 +185,11 @@ class MonkeyString
 
   def inspect
     @value
+  end
+
+  def hash_key
+    value = Digest::SHA1.hexdigest(@value)
+    HashKey.new(type, value)
   end
 end
 
@@ -194,5 +228,36 @@ class MonkeyArray
 
   def inspect
     "[#{@elements.map(&:inspect).join(', ')}]"
+  end
+end
+
+## A Monkey key-value pair
+class HashPair
+  def initialize(key, value)
+    @key = key
+    @value = value
+  end
+
+  attr_reader :key, :value
+end
+
+## A Monkey hash, represented as a Ruby hash with HashKey keys and HashPair values
+class MonkeyHash
+  def initialize(pairs)
+    @pairs = pairs
+  end
+
+  attr_reader :pairs
+
+  def type
+    :HASH
+  end
+
+  def inspect
+    pairs = []
+    @pairs.each do |_, pair|
+      pairs << "#{pair.key.inspect}: #{pair.value.inspect}"
+    end
+    "{#{pairs.join(', ')}}"
   end
 end
