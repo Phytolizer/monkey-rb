@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'lexer'
+require_relative 'parser'
 require_relative 'token'
 
 PROMPT = '>> '
@@ -16,13 +17,12 @@ def start(input, output)
     end
 
     l = Lexer.new(line)
+    p = Parser.new(l)
+    program = p.parse_program
+    p.errors.each { |error| warn error }
+    next unless p.errors.empty?
 
-    loop do
-      token = l.next_token
-      break if token.type == :EOF
-
-      puts "Token{#{token.type} '#{token.literal}'}"
-    end
+    puts program.string
   end
 end
 
