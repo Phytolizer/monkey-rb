@@ -61,3 +61,23 @@ class MonkeyNull
     'null'
   end
 end
+
+## A wrapped return value. This is a shell that signals
+## it should be bubbled up through the AST on evaluation.
+class ReturnValue
+  include MonkeyObject
+
+  def initialize(value)
+    @value = value
+  end
+
+  def type
+    :RETURN_VALUE
+  end
+
+  def inspect
+    @value.inspect
+  end
+
+  attr_reader :value
+end
