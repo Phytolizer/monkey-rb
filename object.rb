@@ -161,6 +161,8 @@ end
 
 ## A built-in function.
 class MonkeyBuiltin
+  include MonkeyObject
+
   def initialize(func)
     @fn = func
   end
@@ -173,5 +175,24 @@ class MonkeyBuiltin
 
   def inspect
     'built-in function'
+  end
+end
+
+## An array.
+class MonkeyArray
+  include MonkeyObject
+
+  def initialize(elements)
+    @elements = elements
+  end
+
+  attr_reader :elements
+
+  def type
+    :ARRAY
+  end
+
+  def inspect
+    "[#{@elements.map(&:inspect).join(', ')}]"
   end
 end

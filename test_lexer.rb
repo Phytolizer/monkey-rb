@@ -27,6 +27,7 @@ class TestLexer < Test::Unit::TestCase
 
       "foobar"
       "foo bar"
+      [1, 2];
     END_OF_INPUT
     tests = [
       [:LET, 'let'],
@@ -103,7 +104,13 @@ class TestLexer < Test::Unit::TestCase
       [:INT, '9'],
       [:SEMICOLON, ';'],
       [:STRING, 'foobar'],
-      [:STRING, 'foo bar']
+      [:STRING, 'foo bar'],
+      [:LBRACKET, '['],
+      [:INT, '1'],
+      [:COMMA, ','],
+      [:INT, '2'],
+      [:RBRACKET, ']'],
+      [:SEMICOLON, ';']
     ]
 
     l = Lexer.new(input)

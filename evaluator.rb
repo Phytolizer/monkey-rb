@@ -14,10 +14,63 @@ BUILTINS = {
 
       case args[0]
       when MonkeyString
-        return MonkeyInteger.new(args[0].value.length)
+        MonkeyInteger.new(args[0].value.length)
+      when MonkeyArray
+        MonkeyInteger.new(args[0].elements.length)
       else
-        return MonkeyError.new("argument to `len` not supported, got #{args[0].type}")
+        MonkeyError.new("argument to `len` not supported, got #{args[0].type}")
       end
+    end
+  ),
+  'first' => MonkeyBuiltin.new(
+    lambda do |args|
+      return MonkeyError.new("wrong number of arguments. got=#{args.length}, want=1") if args.length != 1
+      return MonkeyError.new("argument to `first` must be ARRAY, got #{args[0].type}") if args[0].type != :ARRAY
+
+      arr = args[0]
+      if arr.elements.length.positive?
+        arr.elements[0]
+      else
+        MONKEY_NULL
+      end
+    end
+  ),
+  'last' => MonkeyBuiltin.new(
+    lambda do |args|
+      return MonkeyError.new("wrong number of arguments. got=#{args.length}, want=1") if args.length != 1
+      return MonkeyError.new("argument to `last` must be ARRAY, got #{args[0].type}") if args[0].type != :ARRAY
+
+      arr = args[0]
+      if arr.elements.length.positive?
+        arr.elements[arr.elements.length - 1]
+      else
+        MONKEY_NULL
+      end
+    end
+  ),
+  'rest' => MonkeyBuiltin.new(
+    lambda do |args|
+      return MonkeyError.new("wrong number of arguments. got=#{args.length}, want=1") if args.length != 1
+      return MonkeyError.new("argument to `last` must be ARRAY, got #{args[0].type}") if args[0].type != :ARRAY
+
+      arr = args[0]
+      length = arr.elements.length
+      if length.positive?
+        new_elements = arr.elements[1...length]
+        return MonkeyArray.new(new_elements)
+      end
+      MONKEY_NULL
+    end
+  ),
+  'push' => MonkeyBuiltin.new(
+    lambda do |args|
+      return MonkeyError.new("wrong number of arguments. got=#{args.length}, want=2") if args.length != 2
+      return MonkeyError.new("argument to `last` must be ARRAY, got #{args[0].type}") if args[0].type != :ARRAY
+
+      arr = args[0]
+      new_elements = arr.elements.dup
+      new_elements << args[1]
+      MonkeyArray.new(new_elements)
     end
   )
 }.freeze
@@ -179,6 +232,21 @@ def unwrap_return_value(obj)
   obj
 end
 
+def eval_index_expression(left, index)
+  if left.type == :ARRAY && index.type == :INTEGER
+    eval_array_index_expression(left, index)
+  else
+    MonkeyError.new("index operator not supported: #{left.type}")
+  end
+end
+
+def eval_array_index_expression(array, index)
+  max = array.elements.length - 1
+  return MONKEY_NULL if index.value.negative? || index.value > max
+
+  array.elements[index.value]
+end
+
 def monkey_eval(node, env)
   case node
   when Program
@@ -241,6 +309,19 @@ def monkey_eval(node, env)
     return args[0] if args.length == 1 && error?(args[0])
 
     apply_function(function, args)
+  when ArrayLiteral
+    elements = eval_expressions(node.elements, env)
+    return elements[0] if elements.length == 1 && error?(elements[0])
+
+    MonkeyArray.new(elements)
+  when IndexExpression
+    left = monkey_eval(node.left, env)
+    return left if error?(left)
+
+    index = monkey_eval(node.index, env)
+    return index if error?(index)
+
+    eval_index_expression(left, index)
   end
 end
 

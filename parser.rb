@@ -10,6 +10,7 @@ class Precedence
   PRODUCT = 5
   PREFIX = 6
   CALL = 7
+  INDEX = 8
 end
 
 PRECEDENCES = {
@@ -21,7 +22,8 @@ PRECEDENCES = {
   MINUS: Precedence::SUM,
   STAR: Precedence::PRODUCT,
   SLASH: Precedence::PRODUCT,
-  LPAREN: Precedence::CALL
+  LPAREN: Precedence::CALL,
+  LBRACKET: Precedence::INDEX
 }.freeze
 
 ## The Monkey parser. It converts the token stream
@@ -42,7 +44,8 @@ class Parser
       LPAREN: -> { parse_grouped_expression },
       IF: -> { parse_if_expression },
       FUNCTION: -> { parse_function_literal },
-      STRING: -> { parse_string_literal }
+      STRING: -> { parse_string_literal },
+      LBRACKET: -> { parse_array_literal }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -53,7 +56,8 @@ class Parser
       GT: ->(x) { parse_infix_expression(x) },
       EQ: ->(x) { parse_infix_expression(x) },
       NOT_EQ: ->(x) { parse_infix_expression(x) },
-      LPAREN: ->(x) { parse_call_expression(x) }
+      LPAREN: ->(x) { parse_call_expression(x) },
+      LBRACKET: ->(x) { parse_index_expression(x) }
     }
 
     next_token
@@ -292,30 +296,45 @@ class Parser
 
   def parse_call_expression(function)
     token = @cur_token
-    arguments = parse_call_arguments
+    arguments = parse_expression_list(:RPAREN)
     CallExpression.new(token, function, arguments)
-  end
-
-  def parse_call_arguments
-    args = []
-    if peek_token_is(:RPAREN)
-      next_token
-      return args
-    end
-
-    next_token
-    args << parse_expression(Precedence::LOWEST)
-    while peek_token_is(:COMMA)
-      next_token
-      next_token
-      args << parse_expression(Precedence::LOWEST)
-    end
-    return nil unless expect_peek(:RPAREN)
-
-    args
   end
 
   def parse_string_literal
     StringLiteral.new(@cur_token, @cur_token.literal)
+  end
+
+  def parse_array_literal
+    token = @cur_token
+    elements = parse_expression_list(:RBRACKET)
+    ArrayLiteral.new(token, elements)
+  end
+
+  def parse_expression_list(delim)
+    list = []
+    if peek_token_is(delim)
+      next_token
+      return list
+    end
+
+    next_token
+    list << parse_expression(Precedence::LOWEST)
+    while peek_token_is(:COMMA)
+      next_token
+      next_token
+      list << parse_expression(Precedence::LOWEST)
+    end
+    return nil unless expect_peek(delim)
+
+    list
+  end
+
+  def parse_index_expression(left)
+    token = @cur_token
+    next_token
+    index = parse_expression(Precedence::LOWEST)
+    return nil unless expect_peek(:RBRACKET)
+
+    IndexExpression.new(token, left, index)
   end
 end

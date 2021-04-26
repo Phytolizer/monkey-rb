@@ -264,4 +264,40 @@ class TestEvaluator < Test::Unit::TestCase
       end
     end
   end
+
+  def test_array_literals
+    input = '[1, 2 * 2, 3 + 3]'
+    evaluated = setup_eval(input)
+    assert_instance_of(MonkeyArray, evaluated)
+    assert_equal(3, evaluated.elements.length)
+    check_integer_object(1, evaluated.elements[0])
+    check_integer_object(4, evaluated.elements[1])
+    check_integer_object(6, evaluated.elements[2])
+  end
+
+  def test_array_index_expressions
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('[1, 2, 3][0]', 1),
+      test.new('[1, 2, 3][1]', 2),
+      test.new('[1, 2, 3][2]', 3),
+      test.new('let i = 0; [1][i];', 1),
+      test.new('[1, 2, 3][1 + 1];', 3),
+      test.new('let myArray = [1, 2, 3]; myArray[2];', 3),
+      test.new('let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];', 6),
+      test.new('let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]', 2),
+      test.new('[1, 2, 3][3]', nil),
+      test.new('[1, 2, 3][-1]', nil)
+    ]
+
+    tests.each do |tt|
+      evaluated = setup_eval(tt.input)
+      case tt.expected
+      when Integer
+        check_integer_object(tt.expected, evaluated)
+      else
+        check_null_object(evaluated)
+      end
+    end
+  end
 end

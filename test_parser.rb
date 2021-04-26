@@ -214,7 +214,10 @@ class TestParser < Test::Unit::TestCase
       ['!(true == true)', '(!(true == true))'],
       ['a + add(b * c) + d', '((a + add((b * c))) + d)'],
       ['add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))', 'add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))'],
-      ['add(a + b + c * d / f + g)', 'add((((a + b) + ((c * d) / f)) + g))']
+      ['add(a + b + c * d / f + g)', 'add((((a + b) + ((c * d) / f)) + g))'],
+      ['a * [1, 2, 3, 4][b * c] * d', '((a * ([1, 2, 3, 4][(b * c)])) * d)'],
+      ['add(a * b[2], b[1], 2 * [1, 2][1])', 'add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))']
+
     ]
 
     tests.each do |test|
@@ -355,5 +358,48 @@ class TestParser < Test::Unit::TestCase
     literal = stmt.expression
     assert_instance_of(StringLiteral, literal)
     assert_equal('hello world', literal.value)
+  end
+
+  def test_empty_array_literal
+    input = '[]'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    array = stmt.expression
+    assert_instance_of(ArrayLiteral, array)
+    assert_equal(0, array.elements.length)
+  end
+
+  def test_array_literals
+    input = '[1, 2 * 2, 3 + 3]'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    array = stmt.expression
+    assert_instance_of(ArrayLiteral, array)
+    assert_equal(3, array.elements.length)
+    check_integer_literal(1, array.elements[0])
+    check_infix_expression(2, '*', 2, array.elements[1])
+    check_infix_expression(3, '+', 3, array.elements[2])
+  end
+
+  def test_index_expressions
+    input = 'myArray[1 + 1]'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    exp = stmt.expression
+    assert_instance_of(IndexExpression, exp)
+    check_identifier('myArray', exp.left)
+    check_infix_expression(1, '+', 1, exp.index)
   end
 end

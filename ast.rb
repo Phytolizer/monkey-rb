@@ -274,3 +274,36 @@ class StringLiteral
     token_literal
   end
 end
+
+## An array literal.
+class ArrayLiteral
+  include Node
+
+  def initialize(token, elements)
+    @token = token
+    @elements = elements
+  end
+
+  attr_reader :token, :elements
+
+  def string
+    "[#{@elements.map(&:string).join(', ')}]"
+  end
+end
+
+## Indexing an array.
+class IndexExpression
+  include Node
+
+  def initialize(token, left, index)
+    @token = token
+    @left = left
+    @index = index
+  end
+
+  attr_reader :token, :left, :index
+
+  def string
+    "(#{@left.string}[#{@index.string}])"
+  end
+end
