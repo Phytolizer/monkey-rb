@@ -13,8 +13,9 @@ class TestParser < Test::Unit::TestCase
   def check_let_statement(expected, actual)
     assert_equal('let', actual.token_literal)
     assert_instance_of(LetStatement, actual)
-    assert_equal(expected, actual.name.value)
-    assert_equal(expected, actual.name.token_literal)
+    assert_equal(expected[0], actual.name.value)
+    assert_equal(expected[0], actual.name.token_literal)
+    check_literal_expression(expected[1], actual.value)
   end
 
   def check_parser_errors(parser)
@@ -63,45 +64,41 @@ class TestParser < Test::Unit::TestCase
   public
 
   def test_let_statement
-    input = <<~END_OF_INPUT
-      let x = 5;
-      let y = 10;
-      let foobar = 838383;
-    END_OF_INPUT
-
-    l = Lexer.new(input)
-    p = Parser.new(l)
-    program = p.parse_program
-    check_parser_errors(p)
-
-    assert_equal(3, program.statements.length)
-    tests = %w[
-      x
-      y
-      foobar
+    tests = [
+      ['let x = 5;', 'x', 5],
+      ['let y = true;', 'y', true],
+      ['let foobar = y;', 'foobar', 'y']
     ]
 
-    tests.each_with_index do |test, i|
-      stmt = program.statements[i]
-      check_let_statement(test, stmt)
+    tests.each do |test|
+      l = Lexer.new(test[0])
+      p = Parser.new(l)
+      program = p.parse_program
+      check_parser_errors(p)
+
+      assert_equal(1, program.statements.length)
+      stmt = program.statements[0]
+      check_let_statement(test[1..2], stmt)
     end
   end
 
   def test_return_statement
-    input = <<~END_OF_INPUT
-      return 5;
-      return 10;
-      return 993322;
-    END_OF_INPUT
+    tests = [
+      ['return 5;', 5],
+      ['return true;', true],
+      ['return y;', 'y']
+    ]
 
-    l = Lexer.new(input)
-    p = Parser.new(l)
-    program = p.parse_program
-    check_parser_errors(p)
-    assert_equal(3, program.statements.length)
-    program.statements.each do |stmt|
+    tests.each do |test|
+      l = Lexer.new(test[0])
+      p = Parser.new(l)
+      program = p.parse_program
+      check_parser_errors(p)
+      assert_equal(1, program.statements.length)
+      stmt = program.statements[0]
       assert_instance_of(ReturnStatement, stmt)
       assert_equal('return', stmt.token_literal)
+      check_literal_expression(test[1], stmt.return_value)
     end
   end
 

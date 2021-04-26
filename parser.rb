@@ -138,20 +138,23 @@ class Parser
     name = Identifier.new(@cur_token, @cur_token.literal)
     return nil unless expect_peek(:ASSIGN)
 
-    # TODO
-    next_token until cur_token_is(:SEMICOLON)
+    next_token
+    value = parse_expression(Precedence::LOWEST)
 
-    LetStatement.new(token, name, nil)
+    next_token if peek_token_is(:SEMICOLON)
+
+    LetStatement.new(token, name, value)
   end
 
   def parse_return_statement
     token = @cur_token
     next_token
 
-    # TODO
-    next_token until cur_token_is(:SEMICOLON)
+    return_value = parse_expression(Precedence::LOWEST)
 
-    ReturnStatement.new(token, nil)
+    next_token if peek_token_is(:SEMICOLON)
+
+    ReturnStatement.new(token, return_value)
   end
 
   def parse_expression_statement
