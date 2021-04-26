@@ -94,9 +94,17 @@ def eval_integer_infix_expression(operator, left, right)
   end
 end
 
+def eval_string_infix_expression(operator, left, right)
+  return MonkeyError.new("unknown operator: #{left.type} #{operator} #{right.type}") if operator != '+'
+
+  MonkeyString.new(left.value + right.value)
+end
+
 def eval_infix_expression(operator, left, right)
   if left.type == :INTEGER && right.type == :INTEGER
     eval_integer_infix_expression(operator, left, right)
+  elsif left.type == :STRING && right.type == :STRING
+    eval_string_infix_expression(operator, left, right)
   elsif operator == '=='
     native_bool_to_boolean_object(left == right)
   elsif operator == '!='

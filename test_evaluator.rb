@@ -168,7 +168,8 @@ class TestEvaluator < Test::Unit::TestCase
           return 1;
         }
       ', 'unknown operator: BOOLEAN + BOOLEAN'),
-      test.new('foobar', 'identifier not found: foobar')
+      test.new('foobar', 'identifier not found: foobar'),
+      test.new('"Hello" - "World"', 'unknown operator: STRING - STRING')
     ]
     tests.each do |tt|
       evaluated = setup_eval(tt.input)
@@ -233,5 +234,12 @@ class TestEvaluator < Test::Unit::TestCase
     evaluated = setup_eval(input)
     assert_instance_of(MonkeyString, evaluated)
     assert_equal('Hello, world!', evaluated.value)
+  end
+
+  def test_string_concatenation
+    input = '"Hello" + " " + "World!"'
+    evaluated = setup_eval(input)
+    assert_instance_of(MonkeyString, evaluated)
+    assert_equal('Hello World!', evaluated.value)
   end
 end
