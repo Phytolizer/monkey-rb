@@ -325,4 +325,22 @@ class TestParser < Test::Unit::TestCase
       end
     end
   end
+
+  def test_call_expression
+    input = 'add(1, 2 * 3, 4 + 5)'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    exp = stmt.expression
+    assert_instance_of(CallExpression, exp)
+    check_identifier('add', exp.function)
+    assert_equal(3, exp.arguments.length)
+    check_literal_expression(1, exp.arguments[0])
+    check_infix_expression(2, '*', 3, exp.arguments[1])
+    check_infix_expression(4, '+', 5, exp.arguments[2])
+  end
 end

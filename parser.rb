@@ -20,9 +20,12 @@ PRECEDENCES = {
   PLUS: Precedence::SUM,
   MINUS: Precedence::SUM,
   STAR: Precedence::PRODUCT,
-  SLASH: Precedence::PRODUCT
-}
+  SLASH: Precedence::PRODUCT,
+  LPAREN: Precedence::CALL
+}.freeze
 
+## The Monkey parser. It converts the token stream
+## to an AST for evaluation.
 class Parser
   def initialize(lexer)
     @lexer = lexer
@@ -48,7 +51,8 @@ class Parser
       LT: ->(x) { parse_infix_expression(x) },
       GT: ->(x) { parse_infix_expression(x) },
       EQ: ->(x) { parse_infix_expression(x) },
-      NOT_EQ: ->(x) { parse_infix_expression(x) }
+      NOT_EQ: ->(x) { parse_infix_expression(x) },
+      LPAREN: ->(x) { parse_call_expression(x) }
     }
 
     next_token
@@ -280,5 +284,30 @@ class Parser
     return nil unless expect_peek(:RPAREN)
 
     identifiers
+  end
+
+  def parse_call_expression(function)
+    token = @cur_token
+    arguments = parse_call_arguments
+    CallExpression.new(token, function, arguments)
+  end
+
+  def parse_call_arguments
+    args = []
+    if peek_token_is(:RPAREN)
+      next_token
+      return args
+    end
+
+    next_token
+    args << parse_expression(Precedence::LOWEST)
+    while peek_token_is(:COMMA)
+      next_token
+      next_token
+      args << parse_expression(Precedence::LOWEST)
+    end
+    return nil unless expect_peek(:RPAREN)
+
+    args
   end
 end

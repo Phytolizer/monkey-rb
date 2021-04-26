@@ -239,3 +239,22 @@ class FunctionLiteral
 
   attr_reader :token, :parameters, :body
 end
+
+## A call expression.
+## The function is an expression
+## because function literals are valid in that position.
+class CallExpression
+  include Node
+
+  def initialize(token, function, arguments)
+    @token = token
+    @function = function
+    @arguments = arguments
+  end
+
+  def string
+    "#{@function.string}(#{@arguments.map(&:string).join(', ')})"
+  end
+
+  attr_reader :token, :function, :arguments
+end
