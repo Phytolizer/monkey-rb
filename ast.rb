@@ -221,3 +221,21 @@ class BlockStatement
 
   attr_reader :token, :statements
 end
+
+## A function definition.
+## Functions are nameless unless used in a `let` statement.
+class FunctionLiteral
+  include Node
+
+  def initialize(token, parameters, body)
+    @token = token
+    @parameters = parameters
+    @body = body
+  end
+
+  def string
+    "#{token_literal}(#{@parameters.map(&:string).join(', ')}) #{@body.string}"
+  end
+
+  attr_reader :token, :parameters, :body
+end

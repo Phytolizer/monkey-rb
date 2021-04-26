@@ -283,4 +283,24 @@ class TestParser < Test::Unit::TestCase
     assert_instance_of(ExpressionStatement, alternative)
     check_identifier('y', alternative.expression)
   end
+
+  def test_function_literal
+    input = 'fn(x, y) { x + y; }'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    function = stmt.expression
+    assert_instance_of(FunctionLiteral, function)
+    assert_equal(2, function.parameters.length)
+    check_literal_expression('x', function.parameters[0])
+    check_literal_expression('y', function.parameters[1])
+    assert_equal(1, function.body.statements.length)
+    body = function.body.statements[0]
+    assert_instance_of(ExpressionStatement, body)
+    check_infix_expression('x', '+', 'y', body.expression)
+  end
 end

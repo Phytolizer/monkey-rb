@@ -37,7 +37,8 @@ class Parser
       TRUE: -> { parse_boolean },
       FALSE: -> { parse_boolean },
       LPAREN: -> { parse_grouped_expression },
-      IF: -> { parse_if_expression }
+      IF: -> { parse_if_expression },
+      FUNCTION: -> { parse_function_literal }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -246,5 +247,38 @@ class Parser
     end
 
     BlockStatement.new(token, statements)
+  end
+
+  def parse_function_literal
+    token = @cur_token
+    return nil unless expect_peek(:LPAREN)
+
+    parameters = parse_function_parameters
+    return nil unless expect_peek(:LBRACE)
+
+    body = parse_block_statement
+    FunctionLiteral.new(token, parameters, body)
+  end
+
+  def parse_function_parameters
+    identifiers = []
+    if peek_token_is(:RPAREN)
+      next_token
+      return identifiers
+    end
+
+    next_token
+    ident = Identifier.new(@cur_token, @cur_token.literal)
+    identifiers << ident
+
+    while peek_token_is(:COMMA)
+      next_token
+      next_token
+      ident = Identifier.new(@cur_token, @cur_token.literal)
+      identifiers << ident
+    end
+    return nil unless expect_peek(:RPAREN)
+
+    identifiers
   end
 end
