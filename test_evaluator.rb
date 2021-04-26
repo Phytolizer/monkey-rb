@@ -242,4 +242,26 @@ class TestEvaluator < Test::Unit::TestCase
     assert_instance_of(MonkeyString, evaluated)
     assert_equal('Hello World!', evaluated.value)
   end
+
+  def test_builtin_functions
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('len("")', 0),
+      test.new('len("four")', 4),
+      test.new('len("hello world")', 11),
+      test.new('len(1)', 'argument to `len` not supported, got INTEGER'),
+      test.new('len("one", "two")', 'wrong number of arguments. got=2, want=1')
+    ]
+
+    tests.each do |tt|
+      evaluated = setup_eval(tt.input)
+      case tt.expected
+      when Integer
+        check_integer_object(tt.expected, evaluated)
+      when String
+        assert_instance_of(MonkeyError, evaluated)
+        assert_equal(tt.expected, evaluated.message)
+      end
+    end
+  end
 end

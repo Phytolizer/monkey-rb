@@ -7,6 +7,21 @@ MONKEY_TRUE = MonkeyBoolean.new(true)
 MONKEY_FALSE = MonkeyBoolean.new(false)
 MONKEY_NULL = MonkeyNull.new
 
+BUILTINS = {
+  'len' => MonkeyBuiltin.new(
+    lambda do |args|
+      return MonkeyError.new("wrong number of arguments. got=#{args.length}, want=1") if args.length != 1
+
+      case args[0]
+      when MonkeyString
+        return MonkeyInteger.new(args[0].value.length)
+      else
+        return MonkeyError.new("argument to `len` not supported, got #{args[0].type}")
+      end
+    end
+  )
+}.freeze
+
 def truthy?(value)
   case value
   when MONKEY_NULL, MONKEY_FALSE
@@ -118,11 +133,12 @@ end
 
 def eval_identifier(node, env)
   val = env.get(node.value)
-  if val.nil?
-    MonkeyError.new("identifier not found: #{node.value}")
-  else
-    val
-  end
+  return val unless val.nil?
+
+  builtin = BUILTINS[node.value]
+  return builtin unless builtin.nil?
+
+  MonkeyError.new("identifier not found: #{node.value}")
 end
 
 def eval_expressions(exps, env)
@@ -137,11 +153,16 @@ def eval_expressions(exps, env)
 end
 
 def apply_function(func, args)
-  return MonkeyError.new("not a function: #{func.type}") unless func.is_a?(Function)
-
-  extended_env = extend_function_env(func, args)
-  evaluated = monkey_eval(func.body, extended_env)
-  unwrap_return_value(evaluated)
+  case func
+  when Function
+    extended_env = extend_function_env(func, args)
+    evaluated = monkey_eval(func.body, extended_env)
+    unwrap_return_value(evaluated)
+  when MonkeyBuiltin
+    func.fn.call(args)
+  else
+    MonkeyError.new("not a function: #{func.type}")
+  end
 end
 
 def extend_function_env(func, args)

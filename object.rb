@@ -158,3 +158,20 @@ class MonkeyString
     @value
   end
 end
+
+## A built-in function.
+class MonkeyBuiltin
+  def initialize(func)
+    @fn = func
+  end
+
+  attr_reader :fn
+
+  def type
+    :BUILTIN
+  end
+
+  def inspect
+    'built-in function'
+  end
+end
