@@ -35,7 +35,8 @@ class Parser
       BANG: -> { parse_prefix_expression },
       MINUS: -> { parse_prefix_expression },
       TRUE: -> { parse_boolean },
-      FALSE: -> { parse_boolean }
+      FALSE: -> { parse_boolean },
+      LPAREN: -> { parse_grouped_expression }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -202,5 +203,13 @@ class Parser
 
   def parse_boolean
     Boolean.new(@cur_token, cur_token_is(:TRUE))
+  end
+
+  def parse_grouped_expression
+    next_token
+    exp = parse_expression(Precedence::LOWEST)
+    return nil unless expect_peek(:RPAREN)
+
+    exp
   end
 end

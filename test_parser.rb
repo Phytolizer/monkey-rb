@@ -5,6 +5,8 @@ require_relative 'parser'
 require_relative 'ast'
 require 'test/unit'
 
+## Extensive tests for the Monkey parser.
+## There is lots of room for improvement here.
 class TestParser < Test::Unit::TestCase
   private
 
@@ -200,7 +202,12 @@ class TestParser < Test::Unit::TestCase
       %w[true true],
       %w[false false],
       ['3 > 5 == false', '((3 > 5) == false)'],
-      ['3 < 5 == true', '((3 < 5) == true)']
+      ['3 < 5 == true', '((3 < 5) == true)'],
+      ['1 + (2 + 3) + 4', '((1 + (2 + 3)) + 4)'],
+      ['(5 + 5) * 2', '((5 + 5) * 2)'],
+      ['2 / (5 + 5)', '(2 / (5 + 5))'],
+      ['-(5 + 5)', '(-(5 + 5))'],
+      ['!(true == true)', '(!(true == true))']
     ]
 
     tests.each do |test|
