@@ -303,4 +303,26 @@ class TestParser < Test::Unit::TestCase
     assert_instance_of(ExpressionStatement, body)
     check_infix_expression('x', '+', 'y', body.expression)
   end
+
+  def test_function_parameters
+    tests = [
+      ['fn() {};', []],
+      ['fn(x) {};', ['x']],
+      ['fn(x, y, z) {};', %w[x y z]]
+    ]
+    tests.each do |test|
+      l = Lexer.new(test[0])
+      p = Parser.new(l)
+      program = p.parse_program
+      check_parser_errors(p)
+      stmt = program.statements[0]
+      assert_instance_of(ExpressionStatement, stmt)
+      function = stmt.expression
+      assert_instance_of(FunctionLiteral, function)
+      assert_equal(test[1].length, function.parameters.length)
+      test[1].each_with_index do |ident, i|
+        check_literal_expression(ident, function.parameters[i])
+      end
+    end
+  end
 end
