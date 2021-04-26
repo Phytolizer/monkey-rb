@@ -8,6 +8,7 @@ require_relative 'token'
 PROMPT = '>> '
 
 def start(input, output)
+  env = Environment.new
   loop do
     output.write(PROMPT)
     begin
@@ -23,7 +24,7 @@ def start(input, output)
     p.errors.each { |error| warn error }
     next unless p.errors.empty?
 
-    evaluated = monkey_eval(program)
+    evaluated = monkey_eval(program, env)
     output.write("#{evaluated.inspect}\n") unless evaluated.nil?
   end
 end

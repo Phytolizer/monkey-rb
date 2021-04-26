@@ -16,10 +16,14 @@ def truthy?(value)
   end
 end
 
-def eval_program(program)
+def error?(value)
+  !value.nil? && value.type == :ERROR
+end
+
+def eval_program(program, env)
   result = nil
   program.statements.each do |stmt|
-    result = monkey_eval(stmt)
+    result = monkey_eval(stmt, env)
     case result
     when ReturnValue
       return result.value
@@ -30,10 +34,10 @@ def eval_program(program)
   result
 end
 
-def eval_block_statement(block)
+def eval_block_statement(block, env)
   result = nil
   block.statements.each do |stmt|
-    result = monkey_eval(stmt)
+    result = monkey_eval(stmt, env)
 
     return result if !result.nil? && %i[RETURN_VALUE ERROR].include?(result.type)
   end
@@ -104,37 +108,63 @@ def eval_infix_expression(operator, left, right)
   end
 end
 
-def monkey_eval(node)
+def eval_identifier(node, env)
+  val = env.get(node.value)
+  if val.nil?
+    MonkeyError.new("identifier not found: #{node.value}")
+  else
+    val
+  end
+end
+
+def monkey_eval(node, env)
   case node
   when Program
-    eval_program(node)
+    eval_program(node, env)
   when BlockStatement
-    eval_block_statement(node)
+    eval_block_statement(node, env)
   when ReturnStatement
-    val = monkey_eval(node.return_value)
+    val = monkey_eval(node.return_value, env)
+    return val if error?(val)
+
     ReturnValue.new(val)
+  when LetStatement
+    val = monkey_eval(node.value, env)
+    return val if error?(val)
+
+    env.set(node.name.value, val)
   when ExpressionStatement
-    monkey_eval(node.expression)
+    monkey_eval(node.expression, env)
   when IntegerLiteral
     MonkeyInteger.new(node.value)
   when Boolean
     native_bool_to_boolean_object(node.value)
   when PrefixExpression
-    right = monkey_eval(node.right)
+    right = monkey_eval(node.right, env)
+    return right if error?(right)
+
     eval_prefix_expression(node.operator, right)
   when InfixExpression
-    left = monkey_eval(node.left)
-    right = monkey_eval(node.right)
+    left = monkey_eval(node.left, env)
+    return left if error?(left)
+
+    right = monkey_eval(node.right, env)
+    return right if error?(right)
+
     eval_infix_expression(node.operator, left, right)
   when IfExpression
-    condition = monkey_eval(node.condition)
+    condition = monkey_eval(node.condition, env)
+    return condition if error?(condition)
+
     if truthy?(condition)
-      monkey_eval(node.consequence)
+      monkey_eval(node.consequence, env)
     elsif !node.alternative.nil?
-      monkey_eval(node.alternative)
+      monkey_eval(node.alternative, env)
     else
       MONKEY_NULL
     end
+  when Identifier
+    eval_identifier(node, env)
   end
 end
 

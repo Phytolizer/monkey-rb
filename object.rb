@@ -101,3 +101,19 @@ class MonkeyError
 
   attr_reader :message
 end
+
+## A Monkey environment, storing values for names.
+class Environment
+  def initialize
+    @store = {}
+  end
+
+  def get(name)
+    @store[name]
+  end
+
+  def set(name, val)
+    @store[name] = val
+    val
+  end
+end

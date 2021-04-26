@@ -13,7 +13,7 @@ class TestEvaluator < Test::Unit::TestCase
     l = Lexer.new(input)
     p = Parser.new(l)
     program = p.parse_program
-    monkey_eval(program)
+    monkey_eval(program, Environment.new)
   end
 
   def check_integer_object(expected, actual)
@@ -167,12 +167,27 @@ class TestEvaluator < Test::Unit::TestCase
           }
           return 1;
         }
-      ', 'unknown operator: BOOLEAN + BOOLEAN')
+      ', 'unknown operator: BOOLEAN + BOOLEAN'),
+      test.new('foobar', 'identifier not found: foobar')
     ]
     tests.each do |tt|
       evaluated = setup_eval(tt.input)
       assert_instance_of(MonkeyError, evaluated)
       assert_equal(tt.expected_message, evaluated.message)
+    end
+  end
+
+  def test_let_statements
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('let a = 5; a;', 5),
+      test.new('let a = 5 * 5; a;', 25),
+      test.new('let a = 5; let b = a; b;', 5),
+      test.new('let a = 5; let b = a; let c = a + b + 5; c;', 15)
+    ]
+
+    tests.each do |tt|
+      check_integer_object(tt.expected, setup_eval(tt.input))
     end
   end
 end
