@@ -24,7 +24,7 @@ def start(input, output)
     next unless p.errors.empty?
 
     evaluated = monkey_eval(program)
-    puts evaluated.inspect unless evaluated.nil?
+    output.write("#{evaluated.inspect}\n") unless evaluated.nil?
   end
 end
 
