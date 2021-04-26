@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'evaluator'
 require_relative 'lexer'
 require_relative 'parser'
 require_relative 'token'
@@ -22,7 +23,8 @@ def start(input, output)
     p.errors.each { |error| warn error }
     next unless p.errors.empty?
 
-    puts program.string
+    evaluated = monkey_eval(program)
+    puts evaluated.inspect unless evaluated.nil?
   end
 end
 
