@@ -410,3 +410,73 @@ def native_bool_to_boolean_object(value)
     MONKEY_FALSE
   end
 end
+
+def macro_definition?(statement)
+  statement.is_a?(LetStatement) && statement.value.is_a?(MacroLiteral)
+end
+
+def define_macros(program, env)
+  definitions = []
+  program.statements.each_with_index do |statement, i|
+    if macro_definition?(statement)
+      add_macro(statement, env)
+      definitions << i
+    end
+  end
+  (definitions.length - 1).downto(0).each do |i|
+    definition_index = definitions[i]
+    program.statements.delete_at(definition_index)
+  end
+end
+
+def add_macro(statement, env)
+  macro_literal = statement.value
+  macro = MonkeyMacro.new(
+    macro_literal.parameters,
+    macro_literal.body,
+    env
+  )
+
+  env.set(statement.name.value, macro)
+end
+
+def as_macro_call(exp, env)
+  return nil unless exp.function.is_a?(Identifier)
+
+  obj = env.get(exp.function.value)
+  return nil if obj.nil?
+  return nil unless obj.is_a?(MonkeyMacro)
+
+  obj
+end
+
+def quote_args(exp)
+  args = []
+  exp.arguments.each do |arg|
+    args << Quote.new(arg)
+  end
+  args
+end
+
+def extend_macro_env(macro, args)
+  extended = Environment.new(macro.env)
+  macro.parameters.each_with_index do |param, i|
+    extended.set(param.value, args[i])
+  end
+  extended
+end
+
+def expand_macros(program, env)
+  modify(program, lambda do |node|
+    return node unless node.is_a?(CallExpression)
+
+    macro = as_macro_call(node, env)
+
+    args = quote_args(node)
+    eval_env = extend_macro_env(macro, args)
+    evaluated = monkey_eval(macro.body, eval_env)
+    raise MacroCallError, 'we only support returning AST nodes from macros' unless evaluated.is_a?(Quote)
+
+    evaluated.node
+  end)
+end

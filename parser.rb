@@ -46,7 +46,8 @@ class Parser
       FUNCTION: -> { parse_function_literal },
       STRING: -> { parse_string_literal },
       LBRACKET: -> { parse_array_literal },
-      LBRACE: -> { parse_hash_literal }
+      LBRACE: -> { parse_hash_literal },
+      MACRO: -> { parse_macro_literal }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -356,5 +357,16 @@ class Parser
     return nil unless expect_peek(:RBRACE)
 
     HashLiteral.new(token, pairs)
+  end
+
+  def parse_macro_literal
+    token = @cur_token
+    return nil unless expect_peek(:LPAREN)
+
+    parameters = parse_function_parameters
+    return nil unless expect_peek(:LBRACE)
+
+    body = parse_block_statement
+    MacroLiteral.new(token, parameters, body)
   end
 end

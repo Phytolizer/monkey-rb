@@ -511,4 +511,24 @@ class TestParser < Test::Unit::TestCase
       checker.call(value)
     end
   end
+
+  def test_macro_literal
+    input = 'macro(x, y) { x + y; }'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    assert_equal(1, program.statements.length)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    macro = stmt.expression
+    assert_instance_of(MacroLiteral, macro)
+    assert_equal(2, macro.parameters.length)
+    check_literal_expression('x', macro.parameters[0])
+    check_literal_expression('y', macro.parameters[1])
+    assert_equal(1, macro.body.statements.length)
+    body_stmt = macro.body.statements[0]
+    assert_instance_of(ExpressionStatement, body_stmt)
+    check_infix_expression('x', '+', 'y', body_stmt.expression)
+  end
 end

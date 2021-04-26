@@ -29,6 +29,7 @@ class TestLexer < Test::Unit::TestCase
       "foo bar"
       [1, 2];
       {"foo": "bar"}
+      macro(x, y) { x + y; };
     END_OF_INPUT
     tests = [
       [:LET, 'let'],
@@ -116,7 +117,20 @@ class TestLexer < Test::Unit::TestCase
       [:STRING, 'foo'],
       [:COLON, ':'],
       [:STRING, 'bar'],
-      [:RBRACE, '}']
+      [:RBRACE, '}'],
+      [:MACRO, 'macro'],
+      [:LPAREN, '('],
+      [:IDENT, 'x'],
+      [:COMMA, ','],
+      [:IDENT, 'y'],
+      [:RPAREN, ')'],
+      [:LBRACE, '{'],
+      [:IDENT, 'x'],
+      [:PLUS, '+'],
+      [:IDENT, 'y'],
+      [:SEMICOLON, ';'],
+      [:RBRACE, '}'],
+      [:SEMICOLON, ';']
     ]
 
     l = Lexer.new(input)

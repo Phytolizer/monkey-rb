@@ -19,7 +19,8 @@ module Tokens
     'else' => :ELSE,
     'return' => :RETURN,
     'true' => :TRUE,
-    'false' => :FALSE
+    'false' => :FALSE,
+    'macro' => :MACRO
   }.freeze
   def self.lookup_ident(ident)
     if KEYWORDS.key?(ident)

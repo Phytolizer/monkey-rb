@@ -280,3 +280,24 @@ class Quote
     "QUOTE(#{@node.inspect})"
   end
 end
+
+## A macro definition.
+class MonkeyMacro
+  include MonkeyObject
+
+  def initialize(parameters, body, env)
+    @parameters = parameters
+    @body = body
+    @env = env
+  end
+
+  attr_accessor :parameters, :body, :env
+
+  def type
+    :MACRO
+  end
+
+  def inspect
+    "macro(#{@parameters.map(&:inspect).join(', ')}) {\n#{@body.string}\n}"
+  end
+end

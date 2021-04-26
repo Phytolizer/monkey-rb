@@ -16,6 +16,12 @@ class TestEvaluator < Test::Unit::TestCase
     monkey_eval(program, Environment.new)
   end
 
+  def setup_parse_program(input)
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    p.parse_program
+  end
+
   def check_integer_object(expected, actual)
     assert_instance_of(MonkeyInteger, actual)
     assert_equal(expected, actual.value)
@@ -400,6 +406,50 @@ class TestEvaluator < Test::Unit::TestCase
       assert_instance_of(Quote, evaluated)
       assert_not_nil(evaluated.node)
       assert_equal(tt.expected, evaluated.node.string)
+    end
+  end
+
+  def test_define_macros
+    input = <<~END_OF_INPUT
+      let number = 1;
+      let function = fn(x, y) { x + y; };
+      let mymacro = macro(x, y) { x + y; };
+    END_OF_INPUT
+
+    env = Environment.new
+    program = setup_parse_program(input)
+    define_macros(program, env)
+    assert_equal(2, program.statements.length)
+    assert_nil(env.get('number'))
+    assert_nil(env.get('function'))
+    obj = env.get('mymacro')
+    assert_not_nil(obj)
+    assert_instance_of(MonkeyMacro, obj)
+    assert_equal(2, obj.parameters.length)
+    assert_equal('x', obj.parameters[0].string)
+    assert_equal('y', obj.parameters[1].string)
+    assert_equal('(x + y)', obj.body.string)
+  end
+
+  def test_expand_macros
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('
+        let infixExpression = macro() { quote(1 + 2); };
+        infixExpression();
+        ', '(1 + 2)'),
+      test.new('
+        let reverse = macro(a, b) { quote(unquote(b) - unquote(a)); };
+        reverse(2 + 2, 10 - 5);
+        ', '(10 - 5) - (2 + 2)')
+    ]
+    tests.each do |tt|
+      expected = setup_parse_program(tt.expected)
+      program = setup_parse_program(tt.input)
+      env = Environment.new
+      define_macros(program, env)
+      expanded = expand_macros(program, env)
+      assert_equal(expected.string, expanded.string)
     end
   end
 end

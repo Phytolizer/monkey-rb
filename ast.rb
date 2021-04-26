@@ -384,6 +384,23 @@ class HashLiteral
   end
 end
 
+## A macro definition.
+class MacroLiteral
+  include Node
+
+  def initialize(token, parameters, body)
+    @token = token
+    @parameters = parameters
+    @body = body
+  end
+
+  attr_accessor :token, :parameters, :body
+
+  def string
+    "#{token_literal}(#{@parameters.map(&:string).join(', ')}) #{@body.string}"
+  end
+end
+
 def modify(node, modifier)
   case node
   when Program, BlockStatement
