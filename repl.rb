@@ -9,6 +9,7 @@ PROMPT = '>> '
 
 def start(input, output)
   env = Environment.new
+  macro_env = Environment.new
   loop do
     output.write(PROMPT)
     begin
@@ -24,7 +25,9 @@ def start(input, output)
     p.errors.each { |error| warn error }
     next unless p.errors.empty?
 
-    evaluated = monkey_eval(program, env)
+    define_macros(program, macro_env)
+    expanded = expand_macros(program, macro_env)
+    evaluated = monkey_eval(expanded, env)
     output.write("#{evaluated.inspect}\n") unless evaluated.nil?
   end
 end

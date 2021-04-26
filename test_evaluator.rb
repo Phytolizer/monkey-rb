@@ -441,7 +441,18 @@ class TestEvaluator < Test::Unit::TestCase
       test.new('
         let reverse = macro(a, b) { quote(unquote(b) - unquote(a)); };
         reverse(2 + 2, 10 - 5);
-        ', '(10 - 5) - (2 + 2)')
+        ', '(10 - 5) - (2 + 2)'),
+      test.new('
+        let unless = macro(condition, consequence, alternative) {
+          quote(if (!(unquote(condition))) {
+            unquote(consequence);
+          } else {
+            unquote(alternative);
+          });
+        };
+
+        unless(10 > 5, puts("not greater"), puts("greater"));
+        ', 'if (!(10 > 5)) { puts("not greater") } else { puts("greater") }')
     ]
     tests.each do |tt|
       expected = setup_parse_program(tt.expected)
