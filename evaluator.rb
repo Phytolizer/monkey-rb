@@ -284,6 +284,43 @@ def eval_hash_literal(node, env)
   MonkeyHash.new(pairs)
 end
 
+def unquote_call?(node)
+  node.is_a?(CallExpression) && node.function.token_literal == 'unquote'
+end
+
+def convert_object_to_ast_node(obj)
+  case obj
+  when MonkeyInteger
+    t = Token.new(:INT, obj.value.to_s)
+    IntegerLiteral.new(t, obj.value)
+  when MonkeyBoolean
+    t = if obj.value
+          Token.new(:TRUE, obj.value.to_s)
+        else
+          Token.new(:FALSE, obj.value.to_s)
+        end
+    Boolean.new(t, obj.value)
+  when Quote
+    obj.node
+  end
+end
+
+def eval_unquote_calls(quoted, env)
+  modify(quoted, lambda do |node|
+    return node unless unquote_call?(node)
+    return node unless node.is_a?(CallExpression)
+    return node unless node.arguments.length == 1
+
+    unquoted = monkey_eval(node.arguments[0], env)
+    convert_object_to_ast_node(unquoted)
+  end)
+end
+
+def quote(node, env)
+  node = eval_unquote_calls(node, env)
+  Quote.new(node)
+end
+
 def monkey_eval(node, env)
   case node
   when Program
@@ -339,6 +376,8 @@ def monkey_eval(node, env)
     body = node.body
     Function.new(parameters, body, env)
   when CallExpression
+    return quote(node.arguments[0], env) if node.function.token_literal == 'quote'
+
     function = monkey_eval(node.function, env)
     return function if error?(function)
 

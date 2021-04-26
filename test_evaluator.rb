@@ -354,4 +354,52 @@ class TestEvaluator < Test::Unit::TestCase
       end
     end
   end
+
+  def test_quote
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('quote(5)', '5'),
+      test.new('quote(5 + 8)', '(5 + 8)'),
+      test.new('quote(foobar)', 'foobar'),
+      test.new('quote(foobar + barfoo)', '(foobar + barfoo)')
+    ]
+
+    tests.each do |tt|
+      evaluated = setup_eval(tt.input)
+      assert_instance_of(Quote, evaluated)
+      assert_not_nil(evaluated.node)
+      assert_equal(tt.expected, evaluated.node.string)
+    end
+  end
+
+  def test_quote_unquote
+    test = Struct.new(:input, :expected)
+    tests = [
+      test.new('quote(unquote(4))', '4'),
+      test.new('quote(unquote(4 + 4))', '8'),
+      test.new('quote(8 + unquote(4 + 4))', '(8 + 8)'),
+      test.new('quote(unquote(4 + 4) + 8)', '(8 + 8)'),
+      test.new('
+        let foobar = 8;
+        quote(foobar)
+        ', 'foobar'),
+      test.new('
+          let foobar = 8;
+          quote(unquote(foobar))
+        ', '8'),
+      test.new('quote(unquote(true))', 'true'),
+      test.new('quote(unquote(true == false))', 'false'),
+      test.new('quote(unquote(quote(4 + 4)))', '(4 + 4)'),
+      test.new('
+        let quotedInfixExpression = quote(4 + 4);
+        quote(unquote(4 + 4) + unquote(quotedInfixExpression))
+        ', '(8 + (4 + 4))')
+    ]
+    tests.each do |tt|
+      evaluated = setup_eval(tt.input)
+      assert_instance_of(Quote, evaluated)
+      assert_not_nil(evaluated.node)
+      assert_equal(tt.expected, evaluated.node.string)
+    end
+  end
 end

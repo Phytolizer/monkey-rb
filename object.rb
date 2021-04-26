@@ -261,3 +261,22 @@ class MonkeyHash
     "{#{pairs.join(', ')}}"
   end
 end
+
+## A Monkey AST node.
+class Quote
+  include MonkeyObject
+
+  def initialize(node)
+    @node = node
+  end
+
+  attr_reader :node
+
+  def type
+    :QUOTE
+  end
+
+  def inspect
+    "QUOTE(#{@node.inspect})"
+  end
+end
