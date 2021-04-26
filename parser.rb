@@ -41,7 +41,8 @@ class Parser
       FALSE: -> { parse_boolean },
       LPAREN: -> { parse_grouped_expression },
       IF: -> { parse_if_expression },
-      FUNCTION: -> { parse_function_literal }
+      FUNCTION: -> { parse_function_literal },
+      STRING: -> { parse_string_literal }
     }
     @infix_parse_fns = {
       PLUS: ->(x) { parse_infix_expression(x) },
@@ -312,5 +313,9 @@ class Parser
     return nil unless expect_peek(:RPAREN)
 
     args
+  end
+
+  def parse_string_literal
+    StringLiteral.new(@cur_token, @cur_token.literal)
   end
 end

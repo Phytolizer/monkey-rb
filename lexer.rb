@@ -56,6 +56,15 @@ class Lexer
     @input[position...@position]
   end
 
+  def read_string
+    position = @position + 1
+    loop do
+      read_char
+      break if ['"', "\0"].include?(@ch)
+    end
+    @input[position...@position]
+  end
+
   def skip_whitespace
     read_char while whitespace?(@ch)
   end
@@ -104,6 +113,8 @@ class Lexer
       tok = make_token(:LT, @ch)
     when '>'
       tok = make_token(:GT, @ch)
+    when '"'
+      tok = Token.new(:STRING, read_string)
     when "\0"
       tok = Token.new(:EOF, '')
     else

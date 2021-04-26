@@ -139,3 +139,22 @@ class Function
     "fn(#{@parameters.map(&:string).join}) {\n#{@body.string}\n}"
   end
 end
+
+## A Monkey string.
+class MonkeyString
+  include MonkeyObject
+
+  def initialize(value)
+    @value = value
+  end
+
+  attr_reader :value
+
+  def type
+    :STRING
+  end
+
+  def inspect
+    @value
+  end
+end

@@ -343,4 +343,17 @@ class TestParser < Test::Unit::TestCase
     check_infix_expression(2, '*', 3, exp.arguments[1])
     check_infix_expression(4, '+', 5, exp.arguments[2])
   end
+
+  def test_string_literal_expression
+    input = '"hello world";'
+    l = Lexer.new(input)
+    p = Parser.new(l)
+    program = p.parse_program
+    check_parser_errors(p)
+    stmt = program.statements[0]
+    assert_instance_of(ExpressionStatement, stmt)
+    literal = stmt.expression
+    assert_instance_of(StringLiteral, literal)
+    assert_equal('hello world', literal.value)
+  end
 end

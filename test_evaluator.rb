@@ -227,4 +227,11 @@ class TestEvaluator < Test::Unit::TestCase
     END_OF_INPUT
     check_integer_object(4, setup_eval(input))
   end
+
+  def test_string_literal
+    input = '"Hello, world!"'
+    evaluated = setup_eval(input)
+    assert_instance_of(MonkeyString, evaluated)
+    assert_equal('Hello, world!', evaluated.value)
+  end
 end

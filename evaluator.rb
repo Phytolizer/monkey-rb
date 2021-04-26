@@ -174,6 +174,8 @@ def monkey_eval(node, env)
     native_bool_to_boolean_object(node.value)
   when Identifier
     eval_identifier(node, env)
+  when StringLiteral
+    MonkeyString.new(node.value)
   when PrefixExpression
     right = monkey_eval(node.right, env)
     return right if error?(right)

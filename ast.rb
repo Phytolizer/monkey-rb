@@ -258,3 +258,19 @@ class CallExpression
 
   attr_reader :token, :function, :arguments
 end
+
+## A string literal.
+class StringLiteral
+  include Node
+
+  def initialize(token, value)
+    @token = token
+    @value = value
+  end
+
+  attr_reader :token, :value
+
+  def string
+    token_literal
+  end
+end
