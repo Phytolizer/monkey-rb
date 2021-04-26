@@ -16,14 +16,26 @@ def truthy?(value)
   end
 end
 
-def eval_statements(statements)
+def eval_program(program)
   result = nil
-  statements.each do |stmt|
+  program.statements.each do |stmt|
     result = monkey_eval(stmt)
     case result
     when ReturnValue
       return result.value
+    when MonkeyError
+      return result
     end
+  end
+  result
+end
+
+def eval_block_statement(block)
+  result = nil
+  block.statements.each do |stmt|
+    result = monkey_eval(stmt)
+
+    return result if !result.nil? && %i[RETURN_VALUE ERROR].include?(result.type)
   end
   result
 end
@@ -38,7 +50,7 @@ def eval_bang_operator_expression(right)
 end
 
 def eval_minus_prefix_operator_expression(right)
-  return MONKEY_NULL if right.type != :INTEGER
+  return MonkeyError.new("unknown operator: -#{right.type}") if right.type != :INTEGER
 
   value = right.value
   MonkeyInteger.new(-value)
@@ -51,7 +63,7 @@ def eval_prefix_expression(operator, right)
   when '-'
     eval_minus_prefix_operator_expression(right)
   else
-    MONKEY_NULL
+    MonkeyError.new("unknown operator: #{operator}#{right.type}")
   end
 end
 
@@ -74,7 +86,7 @@ def eval_integer_infix_expression(operator, left, right)
   when '!='
     native_bool_to_boolean_object(left.value != right.value)
   else
-    MONKEY_NULL
+    MonkeyError.new("unknown operator: #{left.type} #{operator} #{right.type}")
   end
 end
 
@@ -85,15 +97,19 @@ def eval_infix_expression(operator, left, right)
     native_bool_to_boolean_object(left == right)
   elsif operator == '!='
     native_bool_to_boolean_object(left != right)
+  elsif left.type != right.type
+    MonkeyError.new("type mismatch: #{left.type} #{operator} #{right.type}")
   else
-    MONKEY_NULL
+    MonkeyError.new("unknown operator: #{left.type} #{operator} #{right.type}")
   end
 end
 
 def monkey_eval(node)
   case node
-  when Program, BlockStatement
-    eval_statements(node.statements)
+  when Program
+    eval_program(node)
+  when BlockStatement
+    eval_block_statement(node)
   when ReturnStatement
     val = monkey_eval(node.return_value)
     ReturnValue.new(val)

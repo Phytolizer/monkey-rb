@@ -134,12 +134,45 @@ class TestEvaluator < Test::Unit::TestCase
       test.new('return 10;', 10),
       test.new('return 10; 9;', 10),
       test.new('return 2 * 5; 9;', 10),
-      test.new('9; return 2 * 5; 9;', 10)
+      test.new('9; return 2 * 5; 9;', 10),
+      test.new('
+        if (10 > 1) {
+          if (10 > 1) {
+            return 10;
+          }
+          return 1;
+        }
+      ', 10)
     ]
 
     tests.each do |tt|
       evaluated = setup_eval(tt.input)
       check_integer_object(tt.expected, evaluated)
+    end
+  end
+
+  def test_error_handling
+    test = Struct.new(:input, :expected_message)
+    tests = [
+      test.new('5 + true;', 'type mismatch: INTEGER + BOOLEAN'),
+      test.new('5 + true; 5;', 'type mismatch: INTEGER + BOOLEAN'),
+      test.new('-true', 'unknown operator: -BOOLEAN'),
+      test.new('true + false;', 'unknown operator: BOOLEAN + BOOLEAN'),
+      test.new('5; true + false; 5', 'unknown operator: BOOLEAN + BOOLEAN'),
+      test.new('if (10 > 1) { true + false; }', 'unknown operator: BOOLEAN + BOOLEAN'),
+      test.new('
+        if (10 > 1) {
+          if (10 > 1) {
+            return true + false;
+          }
+          return 1;
+        }
+      ', 'unknown operator: BOOLEAN + BOOLEAN')
+    ]
+    tests.each do |tt|
+      evaluated = setup_eval(tt.input)
+      assert_instance_of(MonkeyError, evaluated)
+      assert_equal(tt.expected_message, evaluated.message)
     end
   end
 end

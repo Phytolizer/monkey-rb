@@ -81,3 +81,23 @@ class ReturnValue
 
   attr_reader :value
 end
+
+## A Monkey runtime error.
+## It's an object so that we don't get cascading errors.
+class MonkeyError
+  include MonkeyObject
+
+  def initialize(message)
+    @message = message
+  end
+
+  def type
+    :ERROR
+  end
+
+  def inspect
+    "ERROR: #{@message}"
+  end
+
+  attr_reader :message
+end
