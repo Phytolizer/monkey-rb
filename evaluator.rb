@@ -72,6 +72,15 @@ BUILTINS = {
       new_elements << args[1]
       MonkeyArray.new(new_elements)
     end
+  ),
+  'puts' => MonkeyBuiltin.new(
+    lambda do |args|
+      args.each do |arg|
+        puts arg.inspect
+      end
+
+      MONKEY_NULL
+    end
   )
 }.freeze
 
