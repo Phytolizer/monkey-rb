@@ -2,6 +2,7 @@
 
 ## The unit of the Monkey programming language.
 class Token
+  ## Tokens have a type and a literal.
   def initialize(type, literal)
     @type = type
     @literal = literal
@@ -21,6 +22,9 @@ module Tokens
     'true' => :TRUE,
     'false' => :FALSE
   }.freeze
+
+  ## Look up an identifier's type.
+  ## Some identifiers are reserved keywords and thus have their own token types.
   def self.lookup_ident(ident)
     if KEYWORDS.key?(ident)
       KEYWORDS[ident]

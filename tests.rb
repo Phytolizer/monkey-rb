@@ -8,9 +8,11 @@ require_relative 'test_evaluator'
 require_relative 'test_lexer'
 require_relative 'test_object'
 require_relative 'test_parser'
+require_relative 'test_vm'
 
 ## Tests for the Monkey language.
 class MonkeyTests
+  ## Collection of all tests, which are split among several modules.
   def self.suite
     suite = Test::Unit::TestSuite.new
     suite << TestAst.suite
@@ -19,6 +21,7 @@ class MonkeyTests
     suite << TestLexer.suite
     suite << TestObject.suite
     suite << TestParser.suite
+    suite << TestVm.suite
     suite
   end
 end

@@ -12,3 +12,6 @@ Metrics/AbcSize:
 
 Layout/EndOfLine:
   EnforcedStyle: lf
+
+Style/DocumentationMethod:
+  Enabled: true
