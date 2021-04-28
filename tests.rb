@@ -3,6 +3,7 @@
 require 'test/unit/testsuite'
 require_relative 'test_ast'
 require_relative 'test_code'
+require_relative 'test_compiler'
 require_relative 'test_evaluator'
 require_relative 'test_lexer'
 require_relative 'test_object'

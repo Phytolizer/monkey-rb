@@ -49,7 +49,7 @@ class LetStatement
   end
 
   def string
-    result = "#{token_literal} #{@name.string} = "
+    result = +"#{token_literal} #{@name.string} = "
     result << @value.string unless @value.nil?
     result << ';'
     result
