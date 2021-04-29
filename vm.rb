@@ -21,6 +21,33 @@ class VM
     obj
   end
 
+  def execute_binary_integer_operation(operator, left, right)
+    case operator
+    when Opcode::ADD
+      result = left.value + right.value
+    when Opcode::SUB
+      result = left.value - right.value
+    when Opcode::MUL
+      result = left.value * right.value
+    when Opcode::DIV
+      result = left.value / right.value
+    else
+      raise "unknown integer operator: #{operator}"
+    end
+
+    push(MonkeyInteger.new(result))
+  end
+
+  def execute_binary_operation(operator)
+    right = pop
+    left = pop
+    if left.type == :INTEGER && right.type == :INTEGER
+      return execute_binary_integer_operation(operator, left, right)
+    end
+
+    raise "unsupported types for binary operation: #{left.type} #{right.type}"
+  end
+
   public
 
   ## Initialize a VM with the compiler's output.
@@ -56,10 +83,8 @@ class VM
         const_index = read_uint16(@instructions[ip + 1...ip + 3])
         ip += 2
         push(@constants[const_index])
-      when Opcode::ADD
-        right = pop
-        left = pop
-        push(MonkeyInteger.new(left.value + right.value))
+      when Opcode::ADD, Opcode::SUB, Opcode::MUL, Opcode::DIV
+        execute_binary_operation(op)
       when Opcode::POP
         pop
       end

@@ -78,6 +78,36 @@ class TestCompiler < Test::Unit::TestCase
           make(Opcode::CONSTANT, [1]),
           make(Opcode::POP, [])
         ]
+      ),
+      CompilerTestCase.new(
+        '1 - 2',
+        [1, 2],
+        [
+          make(Opcode::CONSTANT, [0]),
+          make(Opcode::CONSTANT, [1]),
+          make(Opcode::SUB, []),
+          make(Opcode::POP, [])
+        ]
+      ),
+      CompilerTestCase.new(
+        '1 * 2',
+        [1, 2],
+        [
+          make(Opcode::CONSTANT, [0]),
+          make(Opcode::CONSTANT, [1]),
+          make(Opcode::MUL, []),
+          make(Opcode::POP, [])
+        ]
+      ),
+      CompilerTestCase.new(
+        '2 / 1',
+        [2, 1],
+        [
+          make(Opcode::CONSTANT, [0]),
+          make(Opcode::CONSTANT, [1]),
+          make(Opcode::DIV, []),
+          make(Opcode::POP, [])
+        ]
       )
     ]
 

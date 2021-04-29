@@ -48,6 +48,12 @@ class Compiler
       case node.operator
       when '+'
         emit(Opcode::ADD, [])
+      when '-'
+        emit(Opcode::SUB, [])
+      when '*'
+        emit(Opcode::MUL, [])
+      when '/'
+        emit(Opcode::DIV, [])
       else
         raise "unknown operator #{node.operator}"
       end

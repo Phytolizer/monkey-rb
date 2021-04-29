@@ -49,7 +49,16 @@ class TestVm < Test::Unit::TestCase
     tests = [
       VmTestCase.new('1', 1),
       VmTestCase.new('2', 2),
-      VmTestCase.new('1 + 2', 3)
+      VmTestCase.new('1 + 2', 3),
+      VmTestCase.new('1 - 2', -1),
+      VmTestCase.new('1 * 2', 2),
+      VmTestCase.new('4 / 2', 2),
+      VmTestCase.new('50 / 2 * 2 + 10 - 5', 55),
+      VmTestCase.new('5 + 5 + 5 + 5 - 10', 10),
+      VmTestCase.new('2 * 2 * 2 * 2 * 2', 32),
+      VmTestCase.new('5 * 2 + 10', 20),
+      VmTestCase.new('5 + 2 * 10', 25),
+      VmTestCase.new('5 * (2 + 10)', 60)
     ]
     run_vm_tests(tests)
   end

@@ -6,6 +6,9 @@ require 'typesafe_enum'
 class Opcode < TypesafeEnum::Base
   new :CONSTANT
   new :ADD
+  new :SUB
+  new :MUL
+  new :DIV
 
   new :POP
 end
@@ -16,6 +19,9 @@ Definition = Struct.new(:name, :operand_widths)
 DEFINITIONS = {
   Opcode::CONSTANT => Definition.new('OpConstant', [2]),
   Opcode::ADD => Definition.new('OpAdd', []),
+  Opcode::SUB => Definition.new('OpSub', []),
+  Opcode::MUL => Definition.new('OpMul', []),
+  Opcode::DIV => Definition.new('OpDiv', []),
   Opcode::POP => Definition.new('OpPop', [])
 }.freeze
 
