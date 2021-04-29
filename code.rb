@@ -6,6 +6,8 @@ require 'typesafe_enum'
 class Opcode < TypesafeEnum::Base
   new :CONSTANT
   new :ADD
+
+  new :POP
 end
 
 ## An opcode definition
@@ -13,7 +15,8 @@ Definition = Struct.new(:name, :operand_widths)
 
 DEFINITIONS = {
   Opcode::CONSTANT => Definition.new('OpConstant', [2]),
-  Opcode::ADD => Definition.new('OpAdd', [])
+  Opcode::ADD => Definition.new('OpAdd', []),
+  Opcode::POP => Definition.new('OpPop', [])
 }.freeze
 
 ## Look up an opcode by its integer value.

@@ -38,7 +38,7 @@ class TestVm < Test::Unit::TestCase
       comp.compile(program)
       vm = VM.new(comp.bytecode)
       vm.run
-      stack_elem = vm.stack_top
+      stack_elem = vm.last_popped_stack_elem
       check_expected_object(tt.expected, stack_elem)
     end
   end

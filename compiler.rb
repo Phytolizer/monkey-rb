@@ -41,6 +41,7 @@ class Compiler
       end
     when ExpressionStatement
       compile(node.expression)
+      emit(Opcode::POP, [])
     when InfixExpression
       compile(node.left)
       compile(node.right)

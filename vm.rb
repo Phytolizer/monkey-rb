@@ -40,6 +40,11 @@ class VM
     end
   end
 
+  ## What *was* on top of the stack?
+  def last_popped_stack_elem
+    @stack[@sp]
+  end
+
   ## Execute the bytecode, manipulating the internal stack.
   def run
     ip = 0
@@ -55,6 +60,8 @@ class VM
         right = pop
         left = pop
         push(MonkeyInteger.new(left.value + right.value))
+      when Opcode::POP
+        pop
       end
 
       ip += 1

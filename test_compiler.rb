@@ -65,7 +65,18 @@ class TestCompiler < Test::Unit::TestCase
         [
           make(Opcode::CONSTANT, [0]),
           make(Opcode::CONSTANT, [1]),
-          make(Opcode::ADD, [])
+          make(Opcode::ADD, []),
+          make(Opcode::POP, [])
+        ]
+      ),
+      CompilerTestCase.new(
+        '1; 2',
+        [1, 2],
+        [
+          make(Opcode::CONSTANT, [0]),
+          make(Opcode::POP, []),
+          make(Opcode::CONSTANT, [1]),
+          make(Opcode::POP, [])
         ]
       )
     ]
