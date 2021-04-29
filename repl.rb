@@ -10,7 +10,6 @@ require_relative 'vm'
 PROMPT = '>> '
 
 def start(input, output)
-  env = Environment.new
   loop do
     output.write(PROMPT)
     begin
@@ -42,8 +41,8 @@ def start(input, output)
       next
     end
 
-    stack_top = vm.stack_top
-    puts stack_top.inspect
+    last_popped = vm.last_popped_stack_elem
+    puts last_popped.inspect
   end
 end
 
