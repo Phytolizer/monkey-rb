@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'object'
+
 STACK_SIZE = 2048
 
 ## The beating heart of Monkey, this takes compiled bytecode and executes it.
@@ -11,6 +13,12 @@ class VM
 
     @stack[@sp] = obj
     @sp += 1
+  end
+
+  def pop
+    obj = @stack[@sp - 1]
+    @sp -= 1
+    obj
   end
 
   public
@@ -43,6 +51,10 @@ class VM
         const_index = read_uint16(@instructions[ip + 1...ip + 3])
         ip += 2
         push(@constants[const_index])
+      when Opcode::ADD
+        right = pop
+        left = pop
+        push(MonkeyInteger.new(left.value + right.value))
       end
 
       ip += 1

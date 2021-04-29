@@ -7,7 +7,10 @@ require_relative 'lexer'
 require_relative 'object'
 require_relative 'parser'
 
+## Tests for the Monkey compiler.
 class TestCompiler < Test::Unit::TestCase
+  private
+
   CompilerTestCase = Struct.new(:input, :expected_constants, :expected_instructions)
 
   def parse(input)
@@ -51,6 +54,9 @@ class TestCompiler < Test::Unit::TestCase
     end
   end
 
+  public
+
+  ## Check that compiling integer arithmetic makes sense.
   def test_integer_arithmetic
     tests = [
       CompilerTestCase.new(
@@ -58,7 +64,8 @@ class TestCompiler < Test::Unit::TestCase
         [1, 2],
         [
           make(Opcode::CONSTANT, [0]),
-          make(Opcode::CONSTANT, [1])
+          make(Opcode::CONSTANT, [1]),
+          make(Opcode::ADD, [])
         ]
       )
     ]

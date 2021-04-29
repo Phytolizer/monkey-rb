@@ -5,15 +5,18 @@ require 'typesafe_enum'
 ## opcodes
 class Opcode < TypesafeEnum::Base
   new :CONSTANT
+  new :ADD
 end
 
 ## An opcode definition
 Definition = Struct.new(:name, :operand_widths)
 
 DEFINITIONS = {
-  Opcode::CONSTANT => Definition.new('OpConstant', [2])
+  Opcode::CONSTANT => Definition.new('OpConstant', [2]),
+  Opcode::ADD => Definition.new('OpAdd', [])
 }.freeze
 
+## Look up an opcode by its integer value.
 def lookup(opcode)
   definition = DEFINITIONS[Opcode.find_by_ord(opcode)]
   raise ArgumentError, "opcode #{opcode} undefined" if definition.nil?
@@ -21,6 +24,7 @@ def lookup(opcode)
   definition
 end
 
+## Pack an instruction from an opcode and its operands.
 def make(opcode, operands)
   definition = DEFINITIONS[opcode]
   return [] if definition.nil?
@@ -45,6 +49,7 @@ def make(opcode, operands)
   instruction
 end
 
+## Convert an instruction to human-readable form.
 def format_instruction(definition, operands)
   operand_count = definition.operand_widths.length
 
@@ -53,6 +58,8 @@ def format_instruction(definition, operands)
   end
 
   case operand_count
+  when 0
+    return definition.name
   when 1
     return "#{definition.name} #{operands[0]}"
   end
@@ -60,6 +67,7 @@ def format_instruction(definition, operands)
   "ERROR: unhandled operand_count for #{definition.name}"
 end
 
+## Convert a set of instructions to human-readable form.
 def format_instructions(instructions)
   out = +''
   i = 0
@@ -79,6 +87,7 @@ def format_instructions(instructions)
   out
 end
 
+## Grab the operands from an instruction.
 def read_operands(definition, ins)
   operands = Array.new(definition.operand_widths.length)
   offset = 0
@@ -92,6 +101,7 @@ def read_operands(definition, ins)
   [operands, offset]
 end
 
+## Unpack a uint16.
 def read_uint16(bytes)
   bytes.pack('CC').unpack1('S>')
 end

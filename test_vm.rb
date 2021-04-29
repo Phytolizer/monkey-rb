@@ -49,7 +49,7 @@ class TestVm < Test::Unit::TestCase
     tests = [
       VmTestCase.new('1', 1),
       VmTestCase.new('2', 2),
-      VmTestCase.new('1 + 2', 2)  # FIXME
+      VmTestCase.new('1 + 2', 3)
     ]
     run_vm_tests(tests)
   end

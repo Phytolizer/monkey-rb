@@ -44,6 +44,12 @@ class Compiler
     when InfixExpression
       compile(node.left)
       compile(node.right)
+      case node.operator
+      when '+'
+        emit(Opcode::ADD, [])
+      else
+        raise "unknown operator #{node.operator}"
+      end
     when IntegerLiteral
       integer = MonkeyInteger.new(node.value)
       emit(Opcode::CONSTANT, [add_constant(integer)])

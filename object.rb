@@ -15,6 +15,7 @@ end
 
 ## A hashable object, required to implement HashKey
 module Hashable
+  ## Get the hash key of this object which will be used in a MonkeyHash.
   def hash_key
     raise NotImplementedError, 'Hashable::hash_key is not meant to be called'
   end
@@ -28,18 +29,22 @@ class MonkeyInteger
   include MonkeyObject
   include Hashable
 
+  ## Create a MonkeyInteger from a native int.
   def initialize(value)
     @value = value
   end
 
+  ## Always returns INTEGER.
   def type
     :INTEGER
   end
 
+  ## Convert this MonkeyInteger to a string.
   def inspect
     @value.to_s
   end
 
+  ## An integer's hash key is its value.
   def hash_key
     HashKey.new(type, @value)
   end
@@ -52,18 +57,22 @@ class MonkeyBoolean
   include MonkeyObject
   include Hashable
 
+  ## Convert a bool to a MonkeyBoolean.
   def initialize(value)
     @value = value
   end
 
+  ## Always returns BOOLEAN.
   def type
     :BOOLEAN
   end
 
+  ## Convert the MonkeyBoolean to a string.
   def inspect
     @value.to_s
   end
 
+  ## The hash key of a boolean is 1 if it is true, 0 otherwise.
   def hash_key
     value = if @value
               1
@@ -81,10 +90,12 @@ end
 class MonkeyNull
   include MonkeyObject
 
+  ## Always returns NULL.
   def type
     :NULL
   end
 
+  ## Returns 'null'.
   def inspect
     'null'
   end
