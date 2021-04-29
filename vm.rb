@@ -3,6 +3,8 @@
 require_relative 'object'
 
 STACK_SIZE = 2048
+TRUE = MonkeyBoolean.new(true)
+FALSE = MonkeyBoolean.new(false)
 
 ## The beating heart of Monkey, this takes compiled bytecode and executes it.
 class VM
@@ -41,9 +43,7 @@ class VM
   def execute_binary_operation(operator)
     right = pop
     left = pop
-    if left.type == :INTEGER && right.type == :INTEGER
-      return execute_binary_integer_operation(operator, left, right)
-    end
+    return execute_binary_integer_operation(operator, left, right) if left.type == :INTEGER && right.type == :INTEGER
 
     raise "unsupported types for binary operation: #{left.type} #{right.type}"
   end
@@ -83,6 +83,10 @@ class VM
         const_index = read_uint16(@instructions[ip + 1...ip + 3])
         ip += 2
         push(@constants[const_index])
+      when Opcode::TRUE
+        push(TRUE)
+      when Opcode::FALSE
+        push(FALSE)
       when Opcode::ADD, Opcode::SUB, Opcode::MUL, Opcode::DIV
         execute_binary_operation(op)
       when Opcode::POP

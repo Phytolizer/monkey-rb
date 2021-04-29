@@ -113,4 +113,27 @@ class TestCompiler < Test::Unit::TestCase
 
     run_compiler_tests(tests)
   end
+
+  def test_boolean_expressions
+    tests = [
+      CompilerTestCase.new(
+        'true',
+        [],
+        [
+          make(Opcode::TRUE, []),
+          make(Opcode::POP, [])
+        ]
+      ),
+      CompilerTestCase.new(
+        'false',
+        [],
+        [
+          make(Opcode::FALSE, []),
+          make(Opcode::POP, [])
+        ]
+      )
+    ]
+
+    run_compiler_tests(tests)
+  end
 end

@@ -24,10 +24,20 @@ class TestVm < Test::Unit::TestCase
     assert_equal(expected, actual.value)
   end
 
+  def check_boolean_object(expected, actual)
+    if expected
+      assert_equal(TRUE, actual)
+    else
+      assert_equal(FALSE, actual)
+    end
+  end
+
   def check_expected_object(expected, actual)
     case expected
     when Integer
       check_integer_object(expected, actual)
+    when TrueClass, FalseClass
+      check_boolean_object(expected, actual)
     end
   end
 
@@ -60,6 +70,15 @@ class TestVm < Test::Unit::TestCase
       VmTestCase.new('5 + 2 * 10', 25),
       VmTestCase.new('5 * (2 + 10)', 60)
     ]
+    run_vm_tests(tests)
+  end
+
+  def test_boolean_expressions
+    tests = [
+      VmTestCase.new('true', true),
+      VmTestCase.new('false', false)
+    ]
+
     run_vm_tests(tests)
   end
 end

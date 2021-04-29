@@ -60,6 +60,12 @@ class Compiler
     when IntegerLiteral
       integer = MonkeyInteger.new(node.value)
       emit(Opcode::CONSTANT, [add_constant(integer)])
+    when Boolean
+      if node.value
+        emit(Opcode::TRUE, [])
+      else
+        emit(Opcode::FALSE, [])
+      end
     end
   end
 
